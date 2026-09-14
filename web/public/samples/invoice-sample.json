@@ -1,0 +1,18 @@
+{
+  "invoiceId": "INV-3080",
+  "assetType": "Bond",
+  "name": "US-TREASURY-3080",
+  "issuer": "Federal Reserve Bank",
+  "counterparty": "0x1234567890abcdef1234567890abcdef12345678",
+  "faceValue": 500000,
+  "currency": "USD",
+  "yield": 5.75,
+  "yieldBps": 575,
+  "issueDate": "2026-01-01",
+  "maturity": "2026-12-31",
+  "dueDate": "2026-12-31",
+  "description": "US Treasury Bond - 12 month maturity. AAA rated. Government backed security.",
+  "paymentTerms": "Net 365",
+  "collateralType": "Government Securities",
+  "rating": "AAA"
+}
