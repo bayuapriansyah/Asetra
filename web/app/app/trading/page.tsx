@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
 import { formatUSD, shortenAddress, normalizePrice, calcTokenCost } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
 import { TxProgress } from "@/components/ui/TxProgress";
+import { RoleGuard } from "@/components/role/RoleGuard";
 import {
   Loader2,
   Wallet,
@@ -18,11 +19,12 @@ import {
   X,
   ShoppingCart,
   ArrowLeftRight,
-  Sparkles,
   Tag,
   User,
 } from "lucide-react";
 import Link from "next/link";
+import { TradingSkeleton } from "@/components/skeleton/PageSkeletons";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SellOrderData {
   orderId: bigint;
@@ -51,8 +53,11 @@ export default function TradingPage() {
   const [buyUnits, setBuyUnits] = useState<{ [key: string]: string }>({});
   const [txError, setTxError] = useState<string | null>(null);
 
-  const { writeContractAsync, data: txHash, isPending, isError, error, reset } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const { writeContractAsync, data: txHash, isPending, reset } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess, isError: rcptIsError, error: rcptError } = useWaitForTransactionReceipt({ hash: txHash });
+
+  const isError = rcptIsError;
+  const error = rcptError;
 
   const loadOrders = useCallback(async () => {
     if (!publicClient) return;
@@ -164,12 +169,26 @@ export default function TradingPage() {
     const totalCost = calcTokenCost(order.pricePerUnit, parseInt(units));
     setTxError(null);
     try {
+      // Step 1: Approve tUSDT
+      const approveHash = await writeContractAsync({
+        address: TUSDT_ADDRESS,
+        abi: TUSDT_ABI,
+        functionName: "approve",
+        args: [ASSETFLOW_ADDRESS, totalCost],
+      });
+
+      // Step 2: Wait for approve to be mined
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: approveHash });
+      if (receipt.status !== "success") {
+        throw new Error("Approve transaction failed. Please try again.");
+      }
+
+      // Step 3: Execute trade (allowance is now set)
       await writeContractAsync({
         address: ASSETFLOW_ADDRESS,
         abi: ASSETFLOW_ABI,
         functionName: "executeTrade",
         args: [BigInt(orderId), BigInt(units)],
-        value: totalCost,
       });
     } catch (e) {
       setTxError(parseContractError(e));
@@ -194,6 +213,7 @@ export default function TradingPage() {
   const otherOrders = orders.filter((o) => !address || o.seller.toLowerCase() !== address.toLowerCase());
 
   return (
+    <RoleGuard allowed={["investor"]}>
     <AppLayout>
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -246,7 +266,7 @@ export default function TradingPage() {
           </p>
         </div>
       ) : (
-        <>
+        <motion.div initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}}>
           {/* Create Sell Order Drawer */}
           {showCreate && (
             <div className="web3-card mb-8 rounded-2xl p-6 animate-slide-up border-cyan-500/30">
@@ -342,11 +362,11 @@ export default function TradingPage() {
             </div>
           )}
 
+          <AnimatePresence mode="wait">
           {isLoading ? (
-            <div className="web3-card rounded-2xl flex flex-col items-center justify-center py-24">
-              <Loader2 className="h-10 w-10 animate-spin text-cyan-400 mb-3" />
-              <p className="text-xs font-mono text-slate-400">Loading open market orders...</p>
-            </div>
+            <motion.div key="skel" exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+              <TradingSkeleton />
+            </motion.div>
           ) : orders.length === 0 ? (
             <div className="web3-card rounded-2xl p-16 text-center">
               <ShoppingCart className="mx-auto mb-3 h-12 w-12 text-slate-600" />
@@ -488,8 +508,10 @@ export default function TradingPage() {
               )}
             </div>
           )}
-        </>
+          </AnimatePresence>
+        </motion.div>
       )}
     </AppLayout>
+    </RoleGuard>
   );
 }

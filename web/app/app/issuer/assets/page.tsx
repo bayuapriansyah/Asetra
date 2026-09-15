@@ -6,8 +6,11 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { AssetCard } from "@/components/asset/AssetCard";
 import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
 import type { AssetData, AssetState } from "@/types/asset";
-import { Loader2, Package, Wallet, Plus, FolderKanban } from "lucide-react";
+import { Package, Wallet, Plus, FolderKanban } from "lucide-react";
+import { IssuerAssetsSkeleton } from "@/components/skeleton/PageSkeletons";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { RoleGuard } from "@/components/role/RoleGuard";
 
 export default function IssuerAssetsPage() {
   const { address, isConnected } = useAccount();
@@ -90,6 +93,7 @@ export default function IssuerAssetsPage() {
   }, [isConnected, loadAssets]);
 
   return (
+    <RoleGuard allowed={["issuer"]}>
     <AppLayout>
       {/* Header Banner */}
       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -120,13 +124,14 @@ export default function IssuerAssetsPage() {
           <h2 className="text-xl font-black text-white">Connect Wallet</h2>
           <p className="mt-2 text-sm text-slate-400">Connect your Web3 wallet to manage your originated assets.</p>
         </div>
-      ) : isLoading ? (
-        <div className="flex flex-col items-center justify-center py-32 space-y-4">
-          <Loader2 className="h-10 w-10 animate-spin text-cyan-400" />
-          <p className="text-sm font-mono text-slate-400 uppercase tracking-wider">Querying Originated Assets...</p>
-        </div>
-      ) : assets.length === 0 ? (
-        <div className="web3-card rounded-2xl p-16 text-center shadow-xl">
+      ) : (
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div key="skel" exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+              <IssuerAssetsSkeleton />
+            </motion.div>
+          ) : assets.length === 0 ? (
+            <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}} className="web3-card rounded-2xl p-16 text-center shadow-xl">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 border border-white/[0.08] text-slate-500">
             <Package className="h-8 w-8" />
           </div>
@@ -138,15 +143,18 @@ export default function IssuerAssetsPage() {
           >
             <Plus className="h-4 w-4" /> Create First Asset
           </Link>
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {assets.map((asset) => (
             <AssetCard key={asset.id.toString()} asset={asset} />
           ))}
-        </div>
+        </motion.div>
+          )}
+        </AnimatePresence>
       )}
     </AppLayout>
+    </RoleGuard>
   );
 }
 

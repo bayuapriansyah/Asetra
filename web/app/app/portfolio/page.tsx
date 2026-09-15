@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { RoleGuard } from "@/components/role/RoleGuard";
 import { formatUSD, timestampToDate } from "@/lib/utils/format";
 import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
 import {
-  Loader2,
   Wallet,
   TrendingUp,
   DollarSign,
@@ -17,9 +17,10 @@ import {
   Shield,
   Layers,
   ArrowUpRight,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import { PortfolioSkeleton } from "@/components/skeleton/PageSkeletons";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Position {
   assetId: bigint;
@@ -163,10 +164,16 @@ export default function PortfolioPage() {
 
   const totalInvested = positions.reduce((acc, p) => acc + p.totalInvested, BigInt(0));
   const totalYield = positions.reduce((acc, p) => acc + p.liveYield, BigInt(0));
-  const totalCollateral = positions.reduce((acc, p) => acc + p.collateralAmount, BigInt(0));
+  const totalCollateral = positions.reduce((acc, p) => {
+    if (p.tokenSupply > BigInt(0)) {
+      return acc + (p.collateralAmount * p.faceValue) / p.tokenSupply;
+    }
+    return acc;
+  }, BigInt(0));
   const totalBorrowed = positions.reduce((acc, p) => acc + p.borrowedAmount, BigInt(0));
 
   return (
+    <RoleGuard allowed={["investor"]}>
     <AppLayout>
       {/* Header */}
       <div className="mb-8">
@@ -193,13 +200,14 @@ export default function PortfolioPage() {
             Connect your wallet to inspect your positions, yield performance, and manage collateral.
           </p>
         </div>
-      ) : isLoading ? (
-        <div className="web3-card rounded-2xl flex flex-col items-center justify-center py-24">
-          <Loader2 className="h-10 w-10 animate-spin text-cyan-400 mb-3" />
-          <p className="text-xs font-mono text-slate-400">Reading positions from contract...</p>
-        </div>
       ) : (
-        <>
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div key="skel" exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+              <PortfolioSkeleton />
+            </motion.div>
+          ) : (
+            <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}}>
           {/* Stat Cards Strip */}
           <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div className="web3-card rounded-2xl p-4">
@@ -265,7 +273,6 @@ export default function PortfolioPage() {
                 href="/app/marketplace"
                 className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-400 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-colors"
               >
-                <Sparkles className="h-3.5 w-3.5" />
                 Go to Marketplace
               </Link>
             </div>
@@ -381,8 +388,11 @@ export default function PortfolioPage() {
               </div>
             </div>
           )}
-        </>
+        </motion.div>
+          )}
+        </AnimatePresence>
       )}
     </AppLayout>
+    </RoleGuard>
   );
 }

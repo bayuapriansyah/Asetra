@@ -9,6 +9,7 @@ import { formatUSD } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
 import { TxProgress } from "@/components/ui/TxProgress";
+import { RoleGuard } from "@/components/role/RoleGuard";
 import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
 import {
   Shield,
@@ -22,6 +23,8 @@ import {
   Unlock,
 } from "lucide-react";
 import Link from "next/link";
+import { CollateralSkeleton } from "@/components/skeleton/PageSkeletons";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PositionWithCollateral {
   assetId: number;
@@ -46,8 +49,11 @@ export default function CollateralPage() {
   const [tab, setTab] = useState<"deposit" | "withdraw">("deposit");
   const [txError, setTxError] = useState<string | null>(null);
 
-  const { writeContractAsync, data: txHash, isPending, isError, error, reset } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const { writeContractAsync, data: txHash, isPending, reset } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess, isError: rcptIsError, error: rcptError } = useWaitForTransactionReceipt({ hash: txHash });
+
+  const isError = rcptIsError;
+  const error = rcptError;
 
   const loadPositions = useCallback(async () => {
     if (!publicClient || !address) return;
@@ -179,6 +185,7 @@ export default function CollateralPage() {
   const freeTokens = selectedPosition ? selectedPosition.amount - selectedPosition.collateralAmount : BigInt(0);
 
   return (
+    <RoleGuard allowed={["investor"]}>
     <AppLayout>
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -218,13 +225,14 @@ export default function CollateralPage() {
             Connect your wallet to deposit or withdraw collateral positions.
           </p>
         </div>
-      ) : isLoading ? (
-        <div className="web3-card rounded-2xl flex flex-col items-center justify-center py-24">
-          <Loader2 className="h-10 w-10 animate-spin text-cyan-400 mb-3" />
-          <p className="text-xs font-mono text-slate-400">Loading collateral holdings from vault...</p>
-        </div>
       ) : (
-        <>
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div key="skel" exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+              <CollateralSkeleton />
+            </motion.div>
+          ) : (
+            <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}}>
           {/* Collateral Metrics */}
           <div className="mb-8 grid gap-4 sm:grid-cols-2">
             <div className="web3-card rounded-2xl p-5">
@@ -499,8 +507,11 @@ export default function CollateralPage() {
               </div>
             </div>
           </div>
-        </>
+        </motion.div>
+          )}
+        </AnimatePresence>
       )}
     </AppLayout>
+    </RoleGuard>
   );
 }

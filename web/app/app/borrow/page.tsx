@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useAccount, usePublicClient } from "wagmi";
+import { useAccount, usePublicClient, useReadContract } from "wagmi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
 import { formatUSD } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
 import { TxProgress } from "@/components/ui/TxProgress";
+import { BorrowSkeleton } from "@/components/skeleton/PageSkeletons";
+import { RoleGuard } from "@/components/role/RoleGuard";
 import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
 import {
   Wallet,
@@ -24,6 +26,7 @@ import {
   Info,
 } from "lucide-react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface BorrowData {
   assetId: number;
@@ -47,8 +50,18 @@ export default function BorrowPage() {
   const [tab, setTab] = useState<"borrow" | "repay">("borrow");
   const [txError, setTxError] = useState<string | null>(null);
 
-  const { writeContractAsync, data: txHash, isPending, isError, error, reset } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const { writeContractAsync, data: txHash, isPending, reset } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess, isError: rcptIsError, error: rcptError } = useWaitForTransactionReceipt({ hash: txHash });
+
+  const isError = rcptIsError;
+  const error = rcptError;
+
+  const { data: tusdtBalance } = useReadContract({
+    address: TUSDT_ADDRESS,
+    abi: TUSDT_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+  });
 
   const loadData = useCallback(async () => {
     if (!publicClient || !address) return;
@@ -152,7 +165,7 @@ export default function BorrowPage() {
         address: ASSETFLOW_ADDRESS,
         abi: ASSETFLOW_ABI,
         functionName: "borrow",
-        args: [BigInt(selectedAsset), BigInt(borrowAmount)],
+        args: [BigInt(selectedAsset), BigInt(borrowAmount) * BigInt(1e6)],
       });
     } catch (e) {
       setTxError(parseContractError(e));
@@ -165,12 +178,26 @@ export default function BorrowPage() {
     if (!asset) return;
     setTxError(null);
     try {
+      // Step 1: Approve tUSDT
+      const approveHash = await writeContractAsync({
+        address: TUSDT_ADDRESS,
+        abi: TUSDT_ABI,
+        functionName: "approve",
+        args: [ASSETFLOW_ADDRESS, asset.borrowedAmount],
+      });
+
+      // Step 2: Wait for approve to be mined
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: approveHash });
+      if (receipt.status !== "success") {
+        throw new Error("Approve transaction failed. Please try again.");
+      }
+
+      // Step 3: Repay (allowance is now set)
       await writeContractAsync({
         address: ASSETFLOW_ADDRESS,
         abi: ASSETFLOW_ABI,
         functionName: "repay",
-        args: [BigInt(selectedAsset)],
-        value: asset.borrowedAmount,
+        args: [BigInt(selectedAsset), asset.borrowedAmount],
       });
     } catch (e) {
       setTxError(parseContractError(e));
@@ -182,6 +209,7 @@ export default function BorrowPage() {
   const selectedPosition = assets.find((a) => a.assetId === selectedAsset);
 
   return (
+    <RoleGuard allowed={["investor"]}>
     <AppLayout>
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -221,13 +249,14 @@ export default function BorrowPage() {
             Connect your wallet to inspect your available credit lines and borrow against collateral.
           </p>
         </div>
-      ) : isLoading ? (
-        <div className="web3-card rounded-2xl flex flex-col items-center justify-center py-24">
-          <Loader2 className="h-10 w-10 animate-spin text-cyan-400 mb-3" />
-          <p className="text-xs font-mono text-slate-400">Retrieving credit facilities and health factors...</p>
-        </div>
       ) : (
-        <>
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div key="skel" exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+              <BorrowSkeleton />
+            </motion.div>
+          ) : (
+            <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}}>
           {/* Credit Overview Strip */}
           <div className="mb-8 grid gap-4 sm:grid-cols-3">
             <div className="web3-card rounded-2xl p-5">
@@ -366,7 +395,7 @@ export default function BorrowPage() {
                     <div>
                       <div className="flex items-center justify-between text-xs font-mono">
                         <label className="text-slate-400 uppercase tracking-wider">
-                          Borrow Amount (BOHR / Wei)
+                          Borrow Amount (tUSDT)
                         </label>
                         {selectedPosition && (
                           <button
@@ -385,6 +414,10 @@ export default function BorrowPage() {
                         placeholder="0"
                         className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-3 font-mono text-base text-white placeholder:text-slate-600 focus:border-cyan-400 focus:outline-none"
                       />
+                      <div className="mt-1.5 text-xs font-mono text-slate-400 flex justify-between">
+                        <span>Your tUSDT Balance</span>
+                        <span className="text-emerald-400 font-bold">{tusdtBalance !== undefined ? `${(Number(tusdtBalance) / 1e6).toFixed(2)} tUSDT` : "—"}</span>
+                      </div>
                     </div>
 
                     <div className="pt-2">
@@ -532,8 +565,11 @@ export default function BorrowPage() {
               </div>
             </div>
           </div>
-        </>
+        </motion.div>
+          )}
+        </AnimatePresence>
       )}
     </AppLayout>
+    </RoleGuard>
   );
 }

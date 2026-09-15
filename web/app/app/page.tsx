@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useAccount, usePublicClient } from "wagmi";
+import { useAccount, usePublicClient, useBalance, useReadContract } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
 import { formatUSD, shortenAddress } from "@/lib/utils/format";
 import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
 import { useRole } from "@/lib/context/RoleContext";
@@ -12,10 +12,8 @@ import {
   DollarSign,
   Shield,
   Wallet,
-  Loader2,
   RefreshCw,
   ArrowRight,
-  Sparkles,
   ArrowUpRight,
   PlusCircle,
   Layers,
@@ -27,6 +25,8 @@ import {
   Eye,
 } from "lucide-react";
 import Link from "next/link";
+import { DashboardSkeleton } from "@/components/skeleton/PageSkeletons";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PositionData {
   assetId: number;
@@ -37,6 +37,8 @@ interface PositionData {
   accruedYield: bigint;
   collateralAmount: bigint;
   borrowedAmount: bigint;
+  faceValue: bigint;
+  tokenSupply: bigint;
 }
 
 interface AssetSummary {
@@ -63,6 +65,13 @@ export default function OverviewPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
   const { role } = useRole();
+  const { data: balanceData } = useBalance({ address });
+  const { data: tusdtBalance } = useReadContract({
+    address: TUSDT_ADDRESS,
+    abi: TUSDT_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+  });
   const [positions, setPositions] = useState<PositionData[]>([]);
   const [assetSummary, setAssetSummary] = useState<AssetSummary>({
     totalAssets: 0,
@@ -96,7 +105,7 @@ export default function OverviewPage() {
 
       for (let i = 0; i < total; i++) {
         try {
-          const [pos, name, state, liveYield, borrowed] = await Promise.all([
+          const [pos, name, state, liveYield, borrowed, faceValue, tokenSupply] = await Promise.all([
             publicClient.readContract({
               address: ASSETFLOW_ADDRESS,
               abi: ASSETFLOW_ABI,
@@ -127,6 +136,18 @@ export default function OverviewPage() {
               functionName: "getBorrowedAmount",
               args: [BigInt(i), address],
             }),
+            publicClient.readContract({
+              address: ASSETFLOW_ADDRESS,
+              abi: ASSETFLOW_ABI,
+              functionName: "assetFaceValue",
+              args: [BigInt(i)],
+            }),
+            publicClient.readContract({
+              address: ASSETFLOW_ADDRESS,
+              abi: ASSETFLOW_ABI,
+              functionName: "assetTokenSupply",
+              args: [BigInt(i)],
+            }),
           ]);
 
           const stateNum = Number(state) as AssetState;
@@ -138,6 +159,8 @@ export default function OverviewPage() {
 
           const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, boolean];
           if (p[6] && p[0] > BigInt(0)) {
+            const faceVal = faceValue as bigint;
+            const supply = tokenSupply as bigint;
             results.push({
               assetId: i,
               assetName: name as string,
@@ -147,6 +170,8 @@ export default function OverviewPage() {
               accruedYield: liveYield as bigint,
               collateralAmount: p[5],
               borrowedAmount: borrowed as bigint,
+              faceValue: faceVal,
+              tokenSupply: supply,
             });
           }
         } catch {
@@ -169,7 +194,12 @@ export default function OverviewPage() {
 
   const totalInvested = positions.reduce((a, p) => a + p.totalInvested, BigInt(0));
   const totalYield = positions.reduce((a, p) => a + p.accruedYield, BigInt(0));
-  const totalCollateral = positions.reduce((a, p) => a + p.collateralAmount, BigInt(0));
+  const totalCollateral = positions.reduce((a, p) => {
+    if (p.tokenSupply > BigInt(0)) {
+      return a + (p.collateralAmount * p.faceValue) / p.tokenSupply;
+    }
+    return a;
+  }, BigInt(0));
   const totalBorrowed = positions.reduce((a, p) => a + p.borrowedAmount, BigInt(0));
 
   return (
@@ -229,13 +259,14 @@ export default function OverviewPage() {
             <p className="text-xs font-mono text-cyan-400">Click &quot;Connect Wallet&quot; in the navigation bar above.</p>
           </div>
         </div>
-      ) : isLoading ? (
-        <div className="web3-card rounded-2xl flex flex-col items-center justify-center py-24">
-          <Loader2 className="h-10 w-10 animate-spin text-cyan-400 mb-3" />
-          <p className="text-sm font-mono text-slate-400">Querying on-chain state from Bohr Chain...</p>
-        </div>
       ) : (
-        <>
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div key="skel" exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+              <DashboardSkeleton />
+            </motion.div>
+          ) : (
+            <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}}>
           {/* ============ ADMIN DASHBOARD ============ */}
           {role === "admin" && (
             <>
@@ -364,9 +395,6 @@ export default function OverviewPage() {
                 <div className="web3-card web3-card-hover rounded-2xl p-5 relative overflow-hidden group">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono uppercase tracking-wider text-slate-400">Tokenized</span>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                      <Sparkles className="h-4 w-4" />
-                    </div>
                   </div>
                   <div className="mt-3 text-3xl font-extrabold font-mono text-indigo-400 tracking-tight">{assetSummary.tokenizedCount}</div>
                   <div className="absolute -bottom-8 -right-8 h-24 w-24 rounded-full bg-indigo-500/[0.05] blur-xl group-hover:bg-indigo-500/[0.1] transition-all" />
@@ -481,7 +509,31 @@ export default function OverviewPage() {
                 </div>
               </div>
 
-              {/* Quick Actions */}
+              {/* Wallet Balances */}
+              <div className="mb-8 grid gap-4 sm:grid-cols-2">
+                <div className="web3-card rounded-2xl p-5 flex items-center justify-between">
+                  <div>
+                    <div className="text-[11px] text-slate-500 uppercase font-mono">BOHR Balance</div>
+                    <div className="mt-1 text-xl font-bold font-mono text-white">
+                      {balanceData ? `${(Number(balanceData.value) / 10 ** balanceData.decimals).toFixed(4)} BOHR` : "—"}
+                    </div>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                    <Wallet className="h-5 w-5" />
+                  </div>
+                </div>
+                <div className="web3-card rounded-2xl p-5 flex items-center justify-between">
+                  <div>
+                    <div className="text-[11px] text-slate-500 uppercase font-mono">tUSDT Balance</div>
+                    <div className="mt-1 text-xl font-bold font-mono text-emerald-400">
+                      {tusdtBalance !== undefined ? `${(Number(tusdtBalance) / 1e6).toFixed(2)} tUSDT` : "—"}
+                    </div>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
               <div className="mb-8 grid gap-4 md:grid-cols-3">
                 <Link href="/app/marketplace" className="web3-card web3-card-hover rounded-2xl p-4 flex items-center justify-between group">
                   <div className="flex items-center gap-3">
@@ -543,7 +595,6 @@ export default function OverviewPage() {
                       Visit the marketplace to explore verified offerings.
                     </p>
                     <Link href="/app/marketplace" className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-400 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-colors">
-                      <Sparkles className="h-3.5 w-3.5" />
                       Explore Marketplace
                     </Link>
                   </div>
@@ -610,7 +661,9 @@ export default function OverviewPage() {
               </div>
             </>
           )}
-        </>
+        </motion.div>
+          )}
+        </AnimatePresence>
       )}
     </AppLayout>
   );

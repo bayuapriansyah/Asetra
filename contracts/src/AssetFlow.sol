@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+interface IERC20 {
+    function transfer(address to, uint256 amount) external returns (bool);
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+}
+
 contract AssetFlow {
 
     enum AssetState {
@@ -47,8 +53,10 @@ contract AssetFlow {
     error OrderNotFound();
     error OrderNotActive();
     error CannotTradeWithSelf();
+    error TransferFailed();
 
     address public admin;
+    IERC20 public immutable tUSDT;
     uint256 public nextAssetId;
     uint256 public nextOrderId = 1;
 
@@ -97,8 +105,9 @@ contract AssetFlow {
     event AssetMatured(uint256 indexed id);
     event AssetSettled(uint256 indexed id, address indexed investor, uint256 principal, uint256 yield_);
 
-    constructor() {
+    constructor(address _tUSDT) {
         admin = msg.sender;
+        tUSDT = IERC20(_tUSDT);
     }
 
     modifier onlyAdmin() {
@@ -119,13 +128,13 @@ contract AssetFlow {
     }
 
     function _getCollateralValue(uint256 assetId, address user) internal view returns (uint256) {
-        return (positions[assetId][user].collateralAmount * assetPricePerUnit[assetId]) / 1e18;
+        return positions[assetId][user].collateralAmount * assetPricePerUnit[assetId];
     }
 
     function _getAvailableCredit(uint256 assetId, address user) internal view returns (uint256) {
         uint256 collateralAmt = positions[assetId][user].collateralAmount;
         if (collateralAmt == 0) return 0;
-        uint256 collateralValue = (collateralAmt * assetPricePerUnit[assetId]) / 1e18;
+        uint256 collateralValue = collateralAmt * assetPricePerUnit[assetId];
         uint256 creditCapacity = (collateralValue * 60) / 100;
         uint256 currentBorrowed = borrowedAmounts[assetId][user];
         if (creditCapacity <= currentBorrowed) return 0;
@@ -214,7 +223,7 @@ contract AssetFlow {
 
         assetState[assetId] = uint8(AssetState.TOKENIZED);
         assetTokenSupply[assetId] = tokenSupply;
-        assetPricePerUnit[assetId] = (assetFaceValue[assetId] * 1e18) / tokenSupply;
+        assetPricePerUnit[assetId] = assetFaceValue[assetId] / tokenSupply;
         assetTokenizedAt[assetId] = block.timestamp;
         assetFundingTarget[assetId] = assetFaceValue[assetId];
 
@@ -237,10 +246,10 @@ contract AssetFlow {
     }
 
     // =========================================================================
-    // INVESTMENT
+    // INVESTMENT (tUSDT)
     // =========================================================================
 
-    function buyTokens(uint256 assetId, uint256 units) external payable {
+    function buyTokens(uint256 assetId, uint256 units) external {
         _requireAssetExists(assetId);
         if (!_isInvestable(assetState[assetId])) revert AssetNotInvestable();
         if (units == 0) revert InvalidAmount();
@@ -248,8 +257,11 @@ contract AssetFlow {
         uint256 available = assetTokenSupply[assetId] - totalUnitsSold[assetId];
         if (units > available) revert InsufficientUnits();
 
-        uint256 cost = (units * assetPricePerUnit[assetId]) / 1e18;
-        if (msg.value < cost) revert InsufficientFunds();
+        uint256 cost = units * assetPricePerUnit[assetId];
+        if (cost == 0) revert InvalidAmount();
+
+        // Pull tUSDT from buyer
+        if (!tUSDT.transferFrom(msg.sender, address(this), cost)) revert TransferFailed();
 
         totalUnitsSold[assetId] += units;
         assetFundedAmount[assetId] += cost;
@@ -274,7 +286,7 @@ contract AssetFlow {
     }
 
     // =========================================================================
-    // TRADING
+    // TRADING (tUSDT)
     // =========================================================================
 
     function createSellOrder(uint256 assetId, uint256 amount, uint256 pricePerUnit_) external returns (uint256) {
@@ -308,7 +320,7 @@ contract AssetFlow {
         emit SellOrderCancelled(orderId);
     }
 
-    function executeTrade(uint256 orderId, uint256 units) external payable {
+    function executeTrade(uint256 orderId, uint256 units) external {
         SellOrder storage order = sellOrders[orderId];
         if (order.orderId == 0) revert OrderNotFound();
         if (!order.active) revert OrderNotActive();
@@ -316,15 +328,17 @@ contract AssetFlow {
         if (units > order.amount) revert InsufficientUnits();
         if (units == 0) revert InvalidAmount();
 
-        uint256 cost = (units * order.pricePerUnit) / 1e18;
-        if (msg.value < cost) revert InsufficientFunds();
+        uint256 cost = units * order.pricePerUnit;
+
+        // Pull tUSDT from buyer
+        if (!tUSDT.transferFrom(msg.sender, address(this), cost)) revert TransferFailed();
 
         uint256 aid = order.assetId;
         uint256 aPrice = assetPricePerUnit[aid];
 
         Position storage sellerPos = positions[aid][order.seller];
         sellerPos.amount -= units;
-        sellerPos.totalInvested -= (units * aPrice) / 1e18;
+        sellerPos.totalInvested -= units * aPrice;
 
         Position storage buyerPos = positions[aid][msg.sender];
         buyerPos.amount += units;
@@ -336,8 +350,8 @@ contract AssetFlow {
             order.active = false;
         }
 
-        (bool sent, ) = order.seller.call{value: cost}("");
-        if (!sent) revert InsufficientFunds();
+        // Send tUSDT to seller
+        if (!tUSDT.transfer(order.seller, cost)) revert TransferFailed();
 
         emit TradeExecuted(orderId, aid, msg.sender, units, cost);
     }
@@ -365,7 +379,7 @@ contract AssetFlow {
 
         if (borrowed > 0) {
             if (newCollateral == 0) revert CollateralWithdrawalViolatesDebt();
-            uint256 newCollateralValue = (newCollateral * assetPricePerUnit[assetId]) / 1e18;
+            uint256 newCollateralValue = newCollateral * assetPricePerUnit[assetId];
             uint256 ltv = (borrowed * 100) / newCollateralValue;
             if (ltv > 60) revert CollateralWithdrawalViolatesDebt();
         }
@@ -375,7 +389,7 @@ contract AssetFlow {
     }
 
     // =========================================================================
-    // BORROW / REPAY
+    // BORROW / REPAY (tUSDT)
     // =========================================================================
 
     function borrow(uint256 assetId, uint256 amount) external {
@@ -390,25 +404,28 @@ contract AssetFlow {
 
         borrowedAmounts[assetId][msg.sender] += amount;
 
-        (bool sent, ) = msg.sender.call{value: amount}("");
-        if (!sent) revert InsufficientFunds();
+        // Send tUSDT to borrower
+        if (!tUSDT.transfer(msg.sender, amount)) revert TransferFailed();
 
         emit Borrowed(assetId, msg.sender, amount);
     }
 
-    function repay(uint256 assetId) external payable {
-        if (msg.value == 0) revert InvalidAmount();
+    function repay(uint256 assetId, uint256 amount) external {
+        if (amount == 0) revert InvalidAmount();
 
         uint256 borrowed = borrowedAmounts[assetId][msg.sender];
         if (borrowed == 0) revert InsufficientCredit();
 
-        uint256 repayAmount = msg.value > borrowed ? borrowed : msg.value;
+        uint256 repayAmount = amount > borrowed ? borrowed : amount;
+
+        // Pull tUSDT from repayer
+        if (!tUSDT.transferFrom(msg.sender, address(this), repayAmount)) revert TransferFailed();
+
         borrowedAmounts[assetId][msg.sender] -= repayAmount;
 
-        uint256 excess = msg.value - repayAmount;
+        uint256 excess = amount - repayAmount;
         if (excess > 0) {
-            (bool sent, ) = msg.sender.call{value: excess}("");
-            if (!sent) revert InsufficientFunds();
+            if (!tUSDT.transfer(msg.sender, excess)) revert TransferFailed();
         }
 
         emit Repaid(assetId, msg.sender, repayAmount);
@@ -422,13 +439,13 @@ contract AssetFlow {
             return (0, true);
         }
 
-        uint256 collateralValue = (collateralAmt * assetPricePerUnit[assetId]) / 1e18;
+        uint256 collateralValue = collateralAmt * assetPricePerUnit[assetId];
         healthFactor = (collateralValue * 10000) / (borrowed * 60);
         healthy = healthFactor >= 100;
     }
 
     // =========================================================================
-    // YIELD
+    // YIELD (tUSDT)
     // =========================================================================
 
     function calculateYield(uint256 assetId, address user) public view returns (uint256) {
@@ -456,8 +473,8 @@ contract AssetFlow {
         pos.accruedYield = yield_;
         pos.claimedYield = yield_;
 
-        (bool sent, ) = msg.sender.call{value: claimable}("");
-        if (!sent) revert InsufficientFunds();
+        // Send tUSDT yield to user
+        if (!tUSDT.transfer(msg.sender, claimable)) revert TransferFailed();
 
         emit YieldClaimed(assetId, msg.sender, claimable);
     }

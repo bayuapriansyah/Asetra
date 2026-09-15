@@ -8,6 +8,7 @@ import { parseDateToTimestamp } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
 import { TxProgress } from "@/components/ui/TxProgress";
+import { RoleGuard } from "@/components/role/RoleGuard";
 import { keccak256 } from "viem";
 import {
   FileText,
@@ -21,7 +22,6 @@ import {
   Loader2,
   AlertCircle,
   Upload,
-  Sparkles,
   ArrowRight,
   ShieldCheck,
   PlusCircle,
@@ -201,7 +201,7 @@ export default function CreateAssetPage() {
         name,
         externalReference: `${name}-REF`,
         counterparty: (counterparty || address) as `0x${string}`,
-        faceValue: BigInt(Math.floor(parseFloat(faceValue) * 1e18)),
+        faceValue: BigInt(Math.floor(parseFloat(faceValue) * 1e6)),
         maturity: parseDateToTimestamp(maturityDate),
         expectedYieldBps: BigInt(parseInt(yieldBps)),
         documentHash: docFileHash || undefined,
@@ -216,6 +216,7 @@ export default function CreateAssetPage() {
   const explorerBase = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.bohr.life";
 
   return (
+    <RoleGuard allowed={["issuer"]}>
     <AppLayout>
       {/* Header Banner */}
       <div className="mb-8">
@@ -301,7 +302,6 @@ export default function CreateAssetPage() {
 
           {aiExtracted && (
             <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm font-semibold text-emerald-300 flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-emerald-400 shrink-0" />
               <span>Fields extracted from document content — verify and confirm below.</span>
             </div>
           )}
@@ -481,6 +481,7 @@ export default function CreateAssetPage() {
         </div>
       )}
     </AppLayout>
+    </RoleGuard>
   );
 }
 

@@ -3,9 +3,50 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {AssetFlow} from "../src/AssetFlow.sol";
+import {IERC20} from "../src/AssetFlow.sol";
+
+contract MockUSDT is IERC20 {
+    string public name = "Tether USD";
+    string public symbol = "USDT";
+    uint8 public constant decimals = 6;
+
+    mapping(address => uint256) private _balances;
+    mapping(address => mapping(address => uint256)) private _allowances;
+    uint256 private _totalSupply;
+
+    function totalSupply() external view returns (uint256) { return _totalSupply; }
+
+    function balanceOf(address account) external view returns (uint256) { return _balances[account]; }
+
+    function allowance(address owner, address spender) external view returns (uint256) { return _allowances[owner][spender]; }
+
+    function transfer(address to, uint256 amount) external returns (bool) {
+        _balances[msg.sender] -= amount;
+        _balances[to] += amount;
+        return true;
+    }
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        _allowances[msg.sender][spender] = amount;
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        _allowances[from][msg.sender] -= amount;
+        _balances[from] -= amount;
+        _balances[to] += amount;
+        return true;
+    }
+
+    function mint(address to, uint256 amount) external {
+        _balances[to] += amount;
+        _totalSupply += amount;
+    }
+}
 
 contract AssetFlowTest is Test {
     AssetFlow public assetFlow;
+    MockUSDT public usdt;
 
     address public admin = address(this);
     address public issuer = address(0x1);
@@ -13,14 +54,18 @@ contract AssetFlowTest is Test {
     address public investor2 = address(0x3);
     address public buyer = address(0x4);
 
-    uint256 public constant FACE_VALUE = 100000e18;
+    uint256 public constant FACE_VALUE = 100000e6;
     uint256 public constant TOKEN_SUPPLY = 100000;
     uint256 public constant YIELD_BPS = 820;
     uint256 public maturity;
 
     function setUp() public {
-        assetFlow = new AssetFlow();
+        usdt = new MockUSDT();
+        assetFlow = new AssetFlow(address(usdt));
         maturity = block.timestamp + 90 days;
+
+        usdt.mint(investor, 1_000_000e6);
+        usdt.mint(investor2, 1_000_000e6);
     }
 
     function _createAsset() internal returns (uint256) {
@@ -53,10 +98,11 @@ contract AssetFlowTest is Test {
 
     function _invest(uint256 assetId, uint256 units) internal {
         uint256 assetPrice = assetFlow.assetPricePerUnit(assetId);
-        uint256 cost = (units * assetPrice) / 1e18;
+        uint256 cost = units * assetPrice;
         vm.prank(investor);
-        vm.deal(investor, cost);
-        assetFlow.buyTokens{value: cost}(assetId, units);
+        usdt.approve(address(assetFlow), cost);
+        vm.prank(investor);
+        assetFlow.buyTokens(assetId, units);
     }
 
     function test_CreateAsset() public {
@@ -168,7 +214,7 @@ contract AssetFlowTest is Test {
         _invest(assetId, 1000);
 
         vm.prank(investor);
-        uint256 orderId = assetFlow.createSellOrder(assetId, 500, 0.98e18);
+        uint256 orderId = assetFlow.createSellOrder(assetId, 500, 0.98e6);
         (, , , uint256 amt, , bool isActive, ) = assetFlow.getSellOrder(orderId);
         assertEq(amt, 500);
         assertTrue(isActive);
@@ -182,7 +228,7 @@ contract AssetFlowTest is Test {
         _invest(assetId, 1000);
 
         vm.prank(investor);
-        uint256 orderId = assetFlow.createSellOrder(assetId, 500, 0.98e18);
+        uint256 orderId = assetFlow.createSellOrder(assetId, 500, 0.98e6);
         vm.prank(investor);
         assetFlow.cancelSellOrder(orderId);
 
@@ -198,12 +244,14 @@ contract AssetFlowTest is Test {
         _invest(assetId, 1000);
 
         vm.prank(investor);
-        uint256 orderId = assetFlow.createSellOrder(assetId, 500, 0.94e18);
+        uint256 orderId = assetFlow.createSellOrder(assetId, 500, 0.94e6);
 
-        uint256 cost = (500 * 0.94e18) / 1e18;
+        uint256 cost = 500 * 0.94e6;
+        usdt.mint(investor2, cost);
         vm.prank(investor2);
-        vm.deal(investor2, cost);
-        assetFlow.executeTrade{value: cost}(orderId, 500);
+        usdt.approve(address(assetFlow), cost);
+        vm.prank(investor2);
+        assetFlow.executeTrade(orderId, 500);
 
         (uint256 amt, , , , , , ) = assetFlow.getPosition(assetId, investor2);
         assertEq(amt, 500);
@@ -249,8 +297,7 @@ contract AssetFlowTest is Test {
         vm.prank(investor);
         assetFlow.depositCollateral(assetId, 100);
         vm.prank(investor);
-        vm.deal(investor, 60 ether);
-        assetFlow.borrow(assetId, 57 ether);
+        assetFlow.borrow(assetId, 57e6);
 
         vm.prank(investor);
         vm.expectRevert(AssetFlow.CollateralWithdrawalViolatesDebt.selector);
@@ -266,11 +313,13 @@ contract AssetFlowTest is Test {
 
         vm.prank(investor);
         assetFlow.depositCollateral(assetId, 100);
-        vm.prank(investor);
-        vm.deal(investor, 1 ether);
-        assetFlow.borrow(assetId, 0.05e18);
 
-        assertEq(assetFlow.getBorrowedAmount(assetId, investor), 0.05e18);
+        uint256 balBefore = usdt.balanceOf(investor);
+        vm.prank(investor);
+        assetFlow.borrow(assetId, 0.05e6);
+
+        assertEq(assetFlow.getBorrowedAmount(assetId, investor), 0.05e6);
+        assertEq(usdt.balanceOf(investor) - balBefore, 0.05e6);
     }
 
     function test_Repay() public {
@@ -283,12 +332,12 @@ contract AssetFlowTest is Test {
         vm.prank(investor);
         assetFlow.depositCollateral(assetId, 100);
         vm.prank(investor);
-        vm.deal(investor, 1 ether);
-        assetFlow.borrow(assetId, 0.05e18);
+        assetFlow.borrow(assetId, 0.05e6);
 
         vm.prank(investor);
-        vm.deal(investor, 1 ether);
-        assetFlow.repay{value: 0.05e18}(assetId);
+        usdt.approve(address(assetFlow), 0.05e6);
+        vm.prank(investor);
+        assetFlow.repay(assetId, 0.05e6);
 
         assertEq(assetFlow.getBorrowedAmount(assetId, investor), 0);
     }

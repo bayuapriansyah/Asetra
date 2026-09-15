@@ -11,7 +11,7 @@ export function formatTokenAmount(value: bigint, decimals: number = 18): string 
 }
 
 export function formatUSD(value: bigint): string {
-  const str = formatUnits(value, 18);
+  const str = formatUnits(value, 6);
   const num = parseFloat(str);
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -49,13 +49,10 @@ export function shortenAddress(address: `0x${string}`): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-const PRICE_DIVISOR = BigInt("1000000000000000000");
-
 export function normalizePrice(rawPricePerUnit: bigint): bigint {
-  if (rawPricePerUnit === BigInt(0)) return BigInt(0);
-  return rawPricePerUnit / PRICE_DIVISOR;
+  return rawPricePerUnit;
 }
 
 export function calcTokenCost(rawPricePerUnit: bigint, units: number): bigint {
-  return (rawPricePerUnit * BigInt(units)) / PRICE_DIVISOR;
+  return rawPricePerUnit * BigInt(units);
 }

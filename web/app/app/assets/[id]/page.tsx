@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState, useEffect, useCallback, useMemo } from "react";
-import { useAccount, usePublicClient, useBalance } from "wagmi";
+import { useAccount, usePublicClient, useReadContract } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAsset } from "@/hooks/useAssets";
 import {
@@ -10,11 +10,12 @@ import {
 } from "@/hooks/useLifecycle";
 import { useBuyTokens } from "@/hooks/useBuyTokens";
 import { useClaimYield } from "@/hooks/useClaimYield";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
 import { ASSET_STATE_LABELS, AssetState } from "@/types/asset";
 import { formatUSD, formatBps, daysUntil, shortenAddress, timestampToDate, calcTokenCost } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
+import { AssetDetailSkeleton } from "@/components/skeleton/PageSkeletons";
 import { useRole, ROLE_LABELS, ROLE_ICONS } from "@/lib/context/RoleContext";
 import { formatUnits } from "viem";
 import {
@@ -25,6 +26,7 @@ import {
   Building2, ArrowUpRight
 } from "lucide-react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 const LIFECYCLE_STEPS = [
   { state: AssetState.CREATED, label: "Created", icon: FileText },
@@ -134,16 +136,11 @@ function ErrorBanner({ error, onDismiss }: { error: string | null; onDismiss: ()
 // Normalized display price calculator
 function getNormalizedPrice(rawPrice: bigint, faceValue: bigint, tokenSupply: bigint): number {
   if (rawPrice > BigInt(0)) {
-    let p = rawPrice;
-    // Check if price is double-scaled (e.g. faceValue * 1e18 / tokenSupply where faceValue was already in wei)
-    if (p >= BigInt(10) ** BigInt(27)) {
-      p = p / BigInt(10) ** BigInt(18);
-    }
-    const floatVal = parseFloat(formatUnits(p, 18));
+    const floatVal = parseFloat(formatUnits(rawPrice, 6));
     if (!isNaN(floatVal) && floatVal > 0) return floatVal;
   }
   if (tokenSupply > BigInt(0) && faceValue > BigInt(0)) {
-    const floatFace = parseFloat(formatUnits(faceValue, 18));
+    const floatFace = parseFloat(formatUnits(faceValue, 6));
     const floatVal = floatFace / Number(tokenSupply);
     if (!isNaN(floatVal) && floatVal > 0) return floatVal;
   }
@@ -466,7 +463,7 @@ function TradingActivityChart({
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-slate-400">Volume:</span>
-                <span className="font-bold text-cyan-300">{activePoint.volumeBohr} BOHR</span>
+                <span className="font-bold text-cyan-300">{activePoint.volumeBohr} tUSDT</span>
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-slate-400">Funded:</span>
@@ -486,8 +483,14 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const { address } = useAccount();
   const { asset, isLoading, refetch } = useAsset(assetId);
   const { role } = useRole();
+  const RoleIcon = role ? ROLE_ICONS[role] : null;
 
-  const { data: balanceData } = useBalance({ address });
+  const { data: tusdtBalance } = useReadContract({
+    address: TUSDT_ADDRESS,
+    abi: TUSDT_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+  });
 
   const { verify, isPending: vPending, isConfirming: vConfirming, isSuccess: vSuccess, isError: vIsError, error: vError, reset: vReset, txHash: vTxHash } = useVerifyAsset();
   const { tokenize, isPending: tPending, isConfirming: tConfirming, isSuccess: tSuccess, isError: tIsError, error: tError, reset: tReset, txHash: tTxHash } = useTokenizeAsset();
@@ -498,7 +501,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const { buyTokens, isPending: bPending, isConfirming: bConfirming, isSuccess: bSuccess, isError: bIsError, error: bError, txHash: bTxHash } = useBuyTokens();
   const { claimYield, isPending: cPending, isConfirming: cConfirming, isSuccess: cSuccess, isError: cIsError, error: cError, reset: cReset } = useClaimYield();
 
-  const [buyUnits, setBuyUnits] = useState<number>(1000);
+  const [buyUnits, setBuyUnits] = useState<number>(1);
   const [activeTab, setActiveTab] = useState<"usdc" | "leverage">("usdc");
   const [tokenSupply, setTokenSupply] = useState("10000");
 
@@ -532,10 +535,12 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     return getNormalizedPrice(asset.pricePerUnit, asset.faceValue, asset.tokenSupply);
   }, [asset]);
 
-  // Estimated purchase total
+  // Estimated purchase total (integer math, consistent with contract)
   const estimatedCost = useMemo(() => {
-    return (buyUnits * tokenPriceFloat).toFixed(2);
-  }, [buyUnits, tokenPriceFloat]);
+    if (!asset) return "0.00";
+    const cost = BigInt(buyUnits) * asset.pricePerUnit;
+    return (Number(cost) / 1e6).toFixed(2);
+  }, [buyUnits, asset]);
 
   // Claimable yield
   const [claimableYield, setClaimableYield] = useState<bigint>(BigInt(0));
@@ -683,10 +688,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="flex flex-col items-center justify-center py-32 space-y-4">
-          <Loader2 className="h-10 w-10 animate-spin text-cyan-400" />
-          <p className="text-sm font-mono text-slate-400 uppercase tracking-wider">Querying Bohr Chain Data...</p>
-        </div>
+        <AssetDetailSkeleton />
       </AppLayout>
     );
   }
@@ -706,6 +708,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
 
   return (
     <AppLayout>
+      <motion.div initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}}>
       {/* ========================================================
           1. TOP HEADER BAR
       ======================================================== */}
@@ -812,7 +815,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                         : "text-slate-400 hover:text-slate-200"
                     }`}
                   >
-                    BOHR
+                    tUSDT
                   </button>
                   <button
                     onClick={() => setActiveTab("leverage")}
@@ -827,7 +830,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
               </div>
 
-              {/* TAB 1: BOHR BUY & POSITION STATE */}
+              {/* TAB 1: tUSDT BUY & POSITION STATE */}
               {activeTab === "usdc" ? (
                 <div className="mt-5 space-y-4">
                   {asset.state === AssetState.LISTED ? (
@@ -869,7 +872,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                             $
                           </div>
                           <span className="text-xl sm:text-2xl font-black text-white font-mono">
-                            ${estimatedCost} BOHR
+                            ${estimatedCost} tUSDT
                           </span>
                         </div>
                       </div>
@@ -877,9 +880,9 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                       {/* Metadata Row: Balance & Min Investment */}
                       <div className="space-y-1 text-xs font-mono pt-1 text-slate-400">
                         <div className="flex justify-between items-center">
-                          <span>Your BOHR Balance</span>
+                          <span>Your tUSDT Balance</span>
                           <span className="font-bold text-white">
-                            {balanceData ? `${parseFloat(formatUnits(balanceData.value, balanceData.decimals)).toFixed(2)} ${balanceData.symbol}` : "—"}
+                            {tusdtBalance !== undefined ? `${(Number(tusdtBalance) / 1e6).toFixed(2)} tUSDT` : "—"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
@@ -952,7 +955,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
               {/* Role Badge */}
               {role && (
                 <div className="mb-4 flex items-center gap-2 rounded-xl border border-white/[0.06] bg-slate-950/60 px-3 py-2 text-xs font-mono text-slate-400">
-                  <span>{ROLE_ICONS[role]}</span>
+                  <span>{RoleIcon && <RoleIcon className="h-4 w-4" />}</span>
                   <span>Acting as <span className="font-bold text-white">{ROLE_LABELS[role]}</span></span>
                 </div>
               )}
@@ -989,7 +992,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 </div>
               )}
               {/* If Asset is LISTED and Investor: Direct Buy */}
-              {asset.state === AssetState.LISTED && (
+              {asset.state === AssetState.LISTED && role === "investor" && (
                 <button
                   onClick={handleBuyTokensDirect}
                   disabled={bPending || bConfirming || Number(availableUnits) <= 0}
@@ -1009,8 +1012,8 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 </button>
               )}
 
-              {/* If Asset is ACTIVE: Accrued Yield & Quick Secondary Trade */}
-              {asset.state === AssetState.ACTIVE && (
+              {/* If Asset is ACTIVE (investor): Accrued Yield & Quick Secondary Trade */}
+              {asset.state === AssetState.ACTIVE && role === "investor" && (
                 <div className="space-y-2.5">
                   <button
                     onClick={handleClaimYield}
@@ -1048,13 +1051,36 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
 
               {/* If Issuer role and VERIFIED */}
               {role === "issuer" && isIssuer && asset.state === AssetState.VERIFIED && (
-                <button
-                  onClick={handleTokenize}
-                  disabled={tPending || tConfirming}
-                  className="w-full rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300 py-3.5 text-xs font-black uppercase tracking-wider transition"
-                >
-                  Tokenize Into Positions
-                </button>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-[11px] font-medium text-slate-400 block mb-2">Token Supply</span>
+                    <div className="flex flex-wrap gap-2">
+                      {[100, 500, 1000, 10000, 100000].map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => setTokenSupply(String(opt))}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition ${
+                            tokenSupply === String(opt)
+                              ? "bg-cyan-400 text-slate-950 border border-cyan-300"
+                              : "bg-slate-900 border border-white/[0.08] text-slate-300 hover:border-slate-500 hover:text-white"
+                          }`}
+                        >
+                          {opt.toLocaleString()}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-2 text-[11px] text-slate-500 font-mono">
+                      1 token = {formatUSD(BigInt(Math.floor((parseFloat(formatUnits(asset.faceValue, 6)) / parseInt(tokenSupply || "10000")) * 1e6)))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleTokenize}
+                    disabled={tPending || tConfirming}
+                    className="w-full rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300 py-3.5 text-xs font-black uppercase tracking-wider transition"
+                  >
+                    Tokenize Into {parseInt(tokenSupply || "10000").toLocaleString()} Positions
+                  </button>
+                </div>
               )}
 
               {/* If Issuer role and TOKENIZED */}
@@ -1066,6 +1092,19 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 >
                   Publish to Marketplace
                 </button>
+              )}
+
+              {/* If Issuer role and ACTIVE */}
+              {role === "issuer" && isIssuer && asset.state === AssetState.ACTIVE && (
+                <div className="space-y-3">
+                  <button
+                    onClick={handleMature}
+                    disabled={mPending || mConfirming}
+                    className="w-full rounded-2xl bg-amber-400 text-slate-950 hover:bg-amber-300 py-3.5 text-xs font-black uppercase tracking-wider transition"
+                  >
+                    {mPending ? "Maturing..." : mConfirming ? "Confirming..." : "Mature Asset"}
+                  </button>
+                </div>
               )}
 
               {/* If Issuer role and MATURED */}
@@ -1099,7 +1138,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
           <div>
             <span className="text-xs text-slate-400 block mb-1">Face Value</span>
             <span className="text-base sm:text-lg font-black text-white block">
-              USD {Number(asset.faceValue / BigInt(1e18)).toLocaleString()}
+              USD {Number(asset.faceValue / BigInt(1e6)).toLocaleString()}
             </span>
           </div>
 
@@ -1239,6 +1278,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       )}
+      </motion.div>
     </AppLayout>
   );
 }

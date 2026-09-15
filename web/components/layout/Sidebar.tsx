@@ -91,6 +91,7 @@ export function Sidebar() {
     .filter((section) => section.items.length > 0);
 
   const badge = role ? ROLE_BADGE_STYLES[role] : null;
+  const RoleIcon = role ? ROLE_ICONS[role] : null;
 
   return (
     <aside className="fixed left-0 top-16 z-40 hidden h-[calc(100vh-4rem)] w-64 border-r border-white/[0.08] bg-[#0a0e17]/95 backdrop-blur-xl lg:block">
@@ -99,7 +100,7 @@ export function Sidebar() {
           {/* Role Badge */}
           {role && badge && (
             <div className={`rounded-xl border ${badge.border} ${badge.bg} px-3 py-2.5 flex items-center gap-2.5`}>
-              <span className="text-base">{ROLE_ICONS[role]}</span>
+              <span className="text-base">{RoleIcon && <RoleIcon className="h-4 w-4" />}</span>
               <div>
                 <div className={`text-xs font-bold uppercase tracking-wider ${badge.text}`}>
                   {ROLE_LABELS[role]}

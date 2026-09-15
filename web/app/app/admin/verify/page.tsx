@@ -8,8 +8,11 @@ import { useVerifyAsset } from "@/hooks/useLifecycle";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
 import { TxProgress } from "@/components/ui/TxProgress";
 import { parseContractError } from "@/lib/utils/errors";
-import { ShieldCheck, Loader2, RefreshCw, ExternalLink, CheckCircle2, Clock } from "lucide-react";
+import { ShieldCheck, RefreshCw, ExternalLink, CheckCircle2, Clock } from "lucide-react";
+import { AdminVerifySkeleton } from "@/components/skeleton/PageSkeletons";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { RoleGuard } from "@/components/role/RoleGuard";
 
 interface PendingAsset {
   assetId: number;
@@ -125,6 +128,7 @@ export default function AdminVerifyPage() {
   };
 
   return (
+    <RoleGuard allowed={["admin"]}>
     <AppLayout>
       <div className="mb-8">
         <div className="flex items-center gap-2.5 mb-1">
@@ -170,21 +174,21 @@ export default function AdminVerifyPage() {
         </button>
       </div>
 
+      <AnimatePresence mode="wait">
       {isLoading ? (
-        <div className="web3-card rounded-2xl flex flex-col items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-400 mb-3" />
-          <p className="text-sm font-mono text-slate-400">Scanning contract for pending assets...</p>
-        </div>
+        <motion.div key="skel" exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+          <AdminVerifySkeleton />
+        </motion.div>
       ) : pendingAssets.length === 0 ? (
-        <div className="web3-card rounded-2xl p-12 text-center">
+        <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}} className="web3-card rounded-2xl p-12 text-center">
           <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-emerald-400/60" />
           <h3 className="text-lg font-bold text-white mb-2">All Clear</h3>
           <p className="text-sm text-slate-400">
             No assets pending verification. All assets have been reviewed.
           </p>
-        </div>
+        </motion.div>
       ) : (
-        <div className="space-y-3">
+        <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}} className="space-y-3">
           {pendingAssets.map((asset) => (
             <div
               key={asset.assetId}
@@ -230,8 +234,10 @@ export default function AdminVerifyPage() {
               </div>
             </div>
           ))}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </AppLayout>
+    </RoleGuard>
   );
 }

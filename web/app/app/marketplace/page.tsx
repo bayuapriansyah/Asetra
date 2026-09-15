@@ -5,8 +5,10 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useAllAssets } from "@/hooks/useAssets";
 import { AssetCard } from "@/components/asset/AssetCard";
 import { AssetState } from "@/types/asset";
-import { Loader2, Search, Package, Sparkles, Filter, Layers, TrendingUp, DollarSign } from "lucide-react";
+import { Search, Package, Sparkles, Filter, Layers, TrendingUp, DollarSign } from "lucide-react";
+import { MarketplaceSkeleton } from "@/components/skeleton/PageSkeletons";
 import { formatUSD } from "@/lib/utils/format";
+import { motion, AnimatePresence } from "framer-motion";
 
 const STATE_FILTERS = [
   { label: "All Assets", value: -1 },
@@ -96,13 +98,13 @@ export default function MarketplacePage() {
       </div>
 
       {/* Asset Grid */}
-      {isLoading ? (
-        <div className="web3-card rounded-2xl flex flex-col items-center justify-center py-24">
-          <Loader2 className="h-10 w-10 animate-spin text-cyan-400 mb-3" />
-          <p className="text-xs font-mono text-slate-400">Loading verified assets from contract...</p>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="web3-card rounded-2xl p-16 text-center">
+      <AnimatePresence mode="wait">
+        {isLoading ? (
+          <motion.div key="skel" exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+            <MarketplaceSkeleton />
+          </motion.div>
+        ) : filtered.length === 0 ? (
+        <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}} className="web3-card rounded-2xl p-16 text-center">
           <Package className="mx-auto mb-4 h-12 w-12 text-slate-600" />
           <h3 className="text-lg font-bold text-white mb-1">No Assets Found</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -110,14 +112,15 @@ export default function MarketplacePage() {
               ? "No assets have been tokenized yet on the testnet. Be the first to issue an asset!"
               : "No assets match your current search or state filters."}
           </p>
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}} className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((asset) => (
             <AssetCard key={asset.id.toString()} asset={asset} />
           ))}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </AppLayout>
   );
 }

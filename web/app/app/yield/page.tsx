@@ -4,22 +4,23 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { RoleGuard } from "@/components/role/RoleGuard";
 import { formatUSD } from "@/lib/utils/format";
 import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
 import {
   TrendingUp,
   Award,
   DollarSign,
-  Loader2,
   Wallet,
   RefreshCw,
-  Sparkles,
   ArrowRight,
   Gift,
   Clock,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { YieldSkeleton } from "@/components/skeleton/PageSkeletons";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface YieldData {
   assetId: number;
@@ -164,6 +165,7 @@ export default function YieldPage() {
   }, BigInt(0));
 
   return (
+    <RoleGuard allowed={["investor"]}>
     <AppLayout>
       {/* Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -203,13 +205,14 @@ export default function YieldPage() {
             Connect your wallet to calculate your real-time yield distribution.
           </p>
         </div>
-      ) : isLoading ? (
-        <div className="web3-card rounded-2xl flex flex-col items-center justify-center py-24">
-          <Loader2 className="h-10 w-10 animate-spin text-cyan-400 mb-3" />
-          <p className="text-xs font-mono text-slate-400">Computing real-time holding yields...</p>
-        </div>
       ) : (
-        <>
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div key="skel" exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+              <YieldSkeleton />
+            </motion.div>
+          ) : (
+            <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}}>
           {/* Yield Metric Cards */}
           <div className="mb-8 grid gap-4 sm:grid-cols-3">
             <div className="web3-card rounded-2xl p-5 relative overflow-hidden">
@@ -271,7 +274,6 @@ export default function YieldPage() {
                 href="/app/marketplace"
                 className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-400 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-colors"
               >
-                <Sparkles className="h-3.5 w-3.5" />
                 Browse Market
               </Link>
             </div>
@@ -366,8 +368,11 @@ export default function YieldPage() {
               })}
             </div>
           )}
-        </>
+        </motion.div>
+          )}
+        </AnimatePresence>
       )}
     </AppLayout>
+    </RoleGuard>
   );
 }

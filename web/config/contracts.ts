@@ -1,7 +1,18 @@
 export const ASSETFLOW_ADDRESS = process.env.NEXT_PUBLIC_ASSETFLOW_ADDRESS as `0x${string}`;
+export const TUSDT_ADDRESS = process.env.NEXT_PUBLIC_TUSDT_ADDRESS as `0x${string}`;
+
+export const TUSDT_ABI = [
+  { type: "function", name: "balanceOf", inputs: [{ name: "account", type: "address" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
+  { type: "function", name: "allowance", inputs: [{ name: "owner", type: "address" }, { name: "spender", type: "address" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
+  { type: "function", name: "approve", inputs: [{ name: "spender", type: "address" }, { name: "amount", type: "uint256" }], outputs: [{ name: "", type: "bool" }], stateMutability: "nonpayable" },
+  { type: "function", name: "decimals", inputs: [], outputs: [{ name: "", type: "uint8" }], stateMutability: "view" },
+  { type: "function", name: "symbol", inputs: [], outputs: [{ name: "", type: "string" }], stateMutability: "view" },
+  { type: "function", name: "name", inputs: [], outputs: [{ name: "", type: "string" }], stateMutability: "view" },
+] as const;
 
 export const ASSETFLOW_ABI = [
   { type: "function", name: "admin", inputs: [], outputs: [{ name: "", type: "address" }], stateMutability: "view" },
+  { type: "function", name: "tUSDT", inputs: [], outputs: [{ name: "", type: "address" }], stateMutability: "view" },
   { type: "function", name: "nextAssetId", inputs: [], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
   { type: "function", name: "nextOrderId", inputs: [], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
 
@@ -18,19 +29,19 @@ export const ASSETFLOW_ABI = [
   { type: "function", name: "tokenizeAsset", inputs: [{ name: "assetId", type: "uint256" }, { name: "tokenSupply", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
   { type: "function", name: "listAsset", inputs: [{ name: "assetId", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
 
-  { type: "function", name: "buyTokens", inputs: [{ name: "assetId", type: "uint256" }, { name: "units", type: "uint256" }], outputs: [], stateMutability: "payable" },
+  { type: "function", name: "buyTokens", inputs: [{ name: "assetId", type: "uint256" }, { name: "units", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
 
   { type: "function", name: "createSellOrder", inputs: [
     { name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }, { name: "pricePerUnit_", type: "uint256" }
   ], outputs: [{ name: "", type: "uint256" }], stateMutability: "nonpayable" },
   { type: "function", name: "cancelSellOrder", inputs: [{ name: "orderId", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
-  { type: "function", name: "executeTrade", inputs: [{ name: "orderId", type: "uint256" }, { name: "units", type: "uint256" }], outputs: [], stateMutability: "payable" },
+  { type: "function", name: "executeTrade", inputs: [{ name: "orderId", type: "uint256" }, { name: "units", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
 
   { type: "function", name: "depositCollateral", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
   { type: "function", name: "withdrawCollateral", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
 
   { type: "function", name: "borrow", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
-  { type: "function", name: "repay", inputs: [{ name: "assetId", type: "uint256" }], outputs: [], stateMutability: "payable" },
+  { type: "function", name: "repay", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
   { type: "function", name: "getHealth", inputs: [{ name: "assetId", type: "uint256" }, { name: "user", type: "address" }], outputs: [{ name: "healthFactor", type: "uint256" }, { name: "healthy", type: "bool" }], stateMutability: "view" },
 
   { type: "function", name: "calculateYield", inputs: [{ name: "assetId", type: "uint256" }, { name: "user", type: "address" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
@@ -44,7 +55,7 @@ export const ASSETFLOW_ABI = [
   { type: "function", name: "getAvailableUnits", inputs: [{ name: "assetId", type: "uint256" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
   { type: "function", name: "getAvailableCredit", inputs: [{ name: "assetId", type: "uint256" }, { name: "user", type: "address" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
   { type: "function", name: "getPosition", inputs: [{ name: "assetId", type: "uint256" }, { name: "user", type: "address" }], outputs: [
-    { name: "amount", type: "uint256" }, { name: "totalInvested", type: "uint256" },
+    { name: "amount", type: "uint256" }, { name: "totalInv", type: "uint256" },
     { name: "holdingStart", type: "uint256" }, { name: "accruedYield", type: "uint256" },
     { name: "claimedYield", type: "uint256" }, { name: "collateralAmount", type: "uint256" },
     { name: "active", type: "bool" }

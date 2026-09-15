@@ -1,14 +1,20 @@
 "use client";
 
-import { useAccount, useBalance } from "wagmi";
+import { useAccount, useBalance, useReadContract } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASSETFLOW_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
 import { Wallet, ExternalLink, Copy, Check, ShieldCheck, Globe, Cpu, Droplets } from "lucide-react";
 import { useState } from "react";
 
 export default function SettingsPage() {
   const { address, isConnected, chain } = useAccount();
   const { data: balance } = useBalance({ address });
+  const { data: tusdtBalance } = useReadContract({
+    address: TUSDT_ADDRESS,
+    abi: TUSDT_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+  });
   const [copiedAddr, setCopiedAddr] = useState(false);
   const [copiedContract, setCopiedContract] = useState(false);
 
@@ -101,12 +107,20 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 rounded-xl border border-white/[0.06] bg-slate-950/50 p-4 font-mono text-xs">
+              <div className="grid grid-cols-3 gap-4 rounded-xl border border-white/[0.06] bg-slate-950/50 p-4 font-mono text-xs">
                 <div>
-                  <div className="text-[11px] text-slate-500 uppercase">Wallet Balance</div>
+                  <div className="text-[11px] text-slate-500 uppercase">BOHR Balance</div>
                   <div className="mt-1 text-base font-bold text-white">
                     {balance
                       ? `${(Number(balance.value) / 10 ** balance.decimals).toFixed(4)} ${balance.symbol}`
+                      : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[11px] text-slate-500 uppercase">tUSDT Balance</div>
+                  <div className="mt-1 text-base font-bold text-emerald-400">
+                    {tusdtBalance !== undefined
+                      ? `${(Number(tusdtBalance) / 1e6).toFixed(2)} tUSDT`
                       : "—"}
                   </div>
                 </div>

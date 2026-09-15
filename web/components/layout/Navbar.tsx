@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ConnectButton } from "@/components/wallet/ConnectButton";
 import { useRole, ROLE_LABELS, ROLE_ICONS, type Role } from "@/lib/context/RoleContext";
-import { Layers, Sparkles, ChevronDown, X } from "lucide-react";
+import { Layers, ChevronDown, X, ShieldCheck, Coins, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 
@@ -14,14 +14,15 @@ const ROLE_BADGE_STYLES: Record<Role, { bg: string; text: string; border: string
   investor: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/30" },
 };
 
-const ROLE_OPTIONS: { id: Role; label: string; icon: string; desc: string }[] = [
-  { id: "admin", label: "Admin", icon: "🔷", desc: "Verify & monitor" },
-  { id: "issuer", label: "Issuer", icon: "🟢", desc: "Create & tokenize" },
-  { id: "investor", label: "Investor", icon: "🟡", desc: "Buy & trade" },
+const ROLE_OPTIONS: { id: Role; label: string; icon: React.ElementType; desc: string }[] = [
+  { id: "admin", label: "Admin", icon: ShieldCheck, desc: "Verify & monitor" },
+  { id: "issuer", label: "Issuer", icon: Coins, desc: "Create & tokenize" },
+  { id: "investor", label: "Investor", icon: TrendingUp, desc: "Buy & trade" },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const isApp = pathname.startsWith("/app");
   const { role, setRole, clearRole, isRoleSelected } = useRole();
   const [showRoleMenu, setShowRoleMenu] = useState(false);
@@ -38,6 +39,7 @@ export function Navbar() {
   }, []);
 
   const badge = role ? ROLE_BADGE_STYLES[role] : null;
+  const RoleIcon = role ? ROLE_ICONS[role] : null;
 
   return (
     <nav className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#080a0f]/85 backdrop-blur-xl">
@@ -109,7 +111,7 @@ export function Navbar() {
                 onClick={() => setShowRoleMenu(!showRoleMenu)}
                 className={`flex items-center gap-2 rounded-full border ${badge.border} ${badge.bg} px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${badge.text} transition-all hover:brightness-110`}
               >
-                <span>{ROLE_ICONS[role]}</span>
+                <span>{RoleIcon && <RoleIcon className="h-3.5 w-3.5" />}</span>
                 <span className="hidden sm:inline">{ROLE_LABELS[role]}</span>
                 <ChevronDown className={cn("h-3 w-3 transition-transform", showRoleMenu && "rotate-180")} />
               </button>
@@ -125,6 +127,7 @@ export function Navbar() {
                       onClick={() => {
                         setRole(opt.id);
                         setShowRoleMenu(false);
+                        router.push("/app");
                       }}
                       className={cn(
                         "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
@@ -133,7 +136,7 @@ export function Navbar() {
                           : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"
                       )}
                     >
-                      <span className="text-base">{opt.icon}</span>
+                      <span className="text-base"><opt.icon className="h-4 w-4" /></span>
                       <div>
                         <div className="text-xs font-bold">{opt.label}</div>
                         <div className="text-[10px] text-slate-500">{opt.desc}</div>
@@ -148,6 +151,7 @@ export function Navbar() {
                       onClick={() => {
                         clearRole();
                         setShowRoleMenu(false);
+                        router.push("/app");
                       }}
                       className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-500 hover:text-red-400 hover:bg-red-500/5 transition-colors"
                     >
@@ -165,7 +169,6 @@ export function Navbar() {
               href="/app"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-semibold text-cyan-300 transition-all hover:bg-cyan-500/20 hover:border-cyan-400"
             >
-              <Sparkles className="h-3.5 w-3.5" />
               Launch App
             </Link>
           )}

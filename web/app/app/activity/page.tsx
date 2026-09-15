@@ -5,7 +5,9 @@ import { useAccount, usePublicClient } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
 import { formatUSD, shortenAddress } from "@/lib/utils/format";
-import { Loader2, Wallet, RefreshCw, ExternalLink, Activity as ActivityIcon, CheckCircle2 } from "lucide-react";
+import { Wallet, RefreshCw, ExternalLink, Activity as ActivityIcon, CheckCircle2, FileText, ShieldCheck, Coins, ClipboardList, DollarSign, Tag, XCircle, ArrowRightLeft, Lock, Unlock, CreditCard, Gem, Clock, Flag, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { ActivitySkeleton } from "@/components/skeleton/PageSkeletons";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 interface ActivityEvent {
@@ -19,94 +21,94 @@ interface ActivityEvent {
 
 const EVENT_CONFIG: Record<
   string,
-  { emoji: string; label: string; badgeColor: string; getDetail: (...args: unknown[]) => string }
+  { icon: React.ReactNode; label: string; badgeColor: string; getDetail: (...args: unknown[]) => string }
 > = {
   AssetCreated: {
-    emoji: "📝",
+    icon: <FileText className="h-5 w-5 text-slate-300" />,
     label: "Asset Created",
     badgeColor: "text-slate-300 bg-slate-800/80 border-slate-700",
     getDetail: (name: unknown) => String(name),
   },
   AssetVerified: {
-    emoji: "✅",
+    icon: <ShieldCheck className="h-5 w-5 text-cyan-400" />,
     label: "Asset Verified",
     badgeColor: "text-cyan-300 bg-cyan-500/10 border-cyan-500/20",
     getDetail: () => "Verification approved by auditor",
   },
   AssetTokenized: {
-    emoji: "🪙",
+    icon: <Coins className="h-5 w-5 text-indigo-400" />,
     label: "Tokens Minted",
     badgeColor: "text-indigo-300 bg-indigo-500/10 border-indigo-500/20",
     getDetail: (supply: unknown) => `${supply} tokens issued on-chain`,
   },
   AssetListed: {
-    emoji: "📋",
+    icon: <ClipboardList className="h-5 w-5 text-amber-400" />,
     label: "Listed On Market",
     badgeColor: "text-amber-300 bg-amber-500/10 border-amber-500/20",
     getDetail: () => `Listed on primary marketplace`,
   },
   InvestmentMade: {
-    emoji: "💰",
+    icon: <DollarSign className="h-5 w-5 text-emerald-400" />,
     label: "Primary Investment",
     badgeColor: "text-emerald-300 bg-emerald-500/10 border-emerald-500/20",
     getDetail: (units: unknown, amount: unknown) => `${units} units · ${formatUSD(amount as bigint)}`,
   },
   SellOrderCreated: {
-    emoji: "🏷️",
+    icon: <Tag className="h-5 w-5 text-cyan-400" />,
     label: "Sell Order Listed",
     badgeColor: "text-cyan-300 bg-cyan-500/10 border-cyan-500/20",
     getDetail: (amount: unknown) => `${amount} units offered for secondary trade`,
   },
   SellOrderCancelled: {
-    emoji: "❌",
+    icon: <XCircle className="h-5 w-5 text-rose-400" />,
     label: "Order Cancelled",
     badgeColor: "text-rose-300 bg-rose-500/10 border-rose-500/20",
     getDetail: () => "Order cancelled by seller",
   },
   TradeExecuted: {
-    emoji: "🔄",
+    icon: <ArrowRightLeft className="h-5 w-5 text-emerald-400" />,
     label: "Secondary Trade",
     badgeColor: "text-emerald-300 bg-emerald-500/10 border-emerald-500/20",
     getDetail: (units: unknown) => `${units} units traded peer-to-peer`,
   },
   CollateralDeposited: {
-    emoji: "🏦",
+    icon: <Lock className="h-5 w-5 text-sky-400" />,
     label: "Collateral Locked",
     badgeColor: "text-sky-300 bg-sky-500/10 border-sky-500/20",
     getDetail: (amount: unknown) => `${amount} tokens locked in vault`,
   },
   CollateralWithdrawn: {
-    emoji: "📤",
+    icon: <Unlock className="h-5 w-5 text-amber-400" />,
     label: "Collateral Released",
     badgeColor: "text-amber-300 bg-amber-500/10 border-amber-500/20",
     getDetail: (amount: unknown) => `${amount} tokens released from vault`,
   },
   Borrowed: {
-    emoji: "💸",
+    icon: <CreditCard className="h-5 w-5 text-amber-400" />,
     label: "Liquidity Borrowed",
     badgeColor: "text-amber-300 bg-amber-500/10 border-amber-500/20",
     getDetail: (amount: unknown) => formatUSD(amount as bigint),
   },
   Repaid: {
-    emoji: "✅",
+    icon: <CheckCircle2 className="h-5 w-5 text-emerald-400" />,
     label: "Debt Repaid",
     badgeColor: "text-emerald-300 bg-emerald-500/10 border-emerald-500/20",
     getDetail: (amount: unknown) => formatUSD(amount as bigint),
   },
   YieldClaimed: {
-    emoji: "💎",
+    icon: <Gem className="h-5 w-5 text-emerald-400" />,
     label: "Yield Claimed",
     badgeColor: "text-emerald-300 bg-emerald-500/10 border-emerald-500/20",
     getDetail: (amount: unknown) => `+${formatUSD(amount as bigint)} claimed to wallet`,
   },
   AssetMatured: {
-    emoji: "⏰",
+    icon: <Clock className="h-5 w-5 text-sky-400" />,
     label: "Asset Matured",
     badgeColor: "text-sky-300 bg-sky-500/10 border-sky-500/20",
     getDetail: () => "Term completed, ready for final settlement",
   },
   AssetSettled: {
-    emoji: "🏁",
+    icon: <Flag className="h-5 w-5 text-teal-400" />,
     label: "Asset Settled",
     badgeColor: "text-teal-300 bg-teal-500/10 border-teal-500/20",
     getDetail: () => "Full lifecycle completed on-chain",
@@ -114,19 +116,25 @@ const EVENT_CONFIG: Record<
 };
 
 const EVENT_NAMES = Object.keys(EVENT_CONFIG);
+const ITEMS_PER_PAGE = 15;
 
 export default function ActivityPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
 
   const loadActivity = useCallback(async () => {
     if (!publicClient || !address) return;
     setIsLoading(true);
     try {
       const latestBlock = await publicClient.getBlockNumber();
-      const fromBlock = latestBlock > BigInt(5000) ? latestBlock - BigInt(5000) : BigInt(0);
+      const fromBlock = BigInt(0);
 
       const eventPromises = EVENT_NAMES.map(async (eventName) => {
         try {
@@ -181,6 +189,7 @@ export default function ActivityPage() {
 
       eventsWithTime.sort((a, b) => b.timestamp - a.timestamp);
       setEvents(eventsWithTime);
+      setPage(0);
     } catch (e) {
       console.error("Failed to load activity:", e);
     } finally {
@@ -194,6 +203,9 @@ export default function ActivityPage() {
   }, [isConnected, loadActivity]);
 
   const explorerBase = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.bohr.life";
+
+  const totalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
+  const paginatedEvents = events.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE);
 
   return (
     <AppLayout>
@@ -235,13 +247,14 @@ export default function ActivityPage() {
             Connect your wallet to monitor recent transactions and event emissions.
           </p>
         </div>
-      ) : isLoading ? (
-        <div className="web3-card rounded-2xl flex flex-col items-center justify-center py-24">
-          <Loader2 className="h-10 w-10 animate-spin text-cyan-400 mb-3" />
-          <p className="text-xs font-mono text-slate-400">Querying event logs across blocks...</p>
-        </div>
-      ) : events.length === 0 ? (
-        <div className="web3-card rounded-2xl p-16 text-center">
+      ) : (
+        <AnimatePresence mode="wait">
+          {isLoading ? (
+            <motion.div key="skel" exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+              <ActivitySkeleton />
+            </motion.div>
+          ) : events.length === 0 ? (
+            <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}} className="web3-card rounded-2xl p-16 text-center">
           <ActivityIcon className="mx-auto mb-3 h-12 w-12 text-slate-600" />
           <h3 className="text-lg font-bold text-white mb-1">No Recent Events</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto mb-4">
@@ -256,11 +269,11 @@ export default function ActivityPage() {
             <span>Inspect Contract on Bohr Scan</span>
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
-        </div>
+        </motion.div>
       ) : (
-        <div className="web3-card rounded-2xl overflow-hidden">
+        <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}} className="web3-card rounded-2xl overflow-hidden">
           <div className="divide-y divide-white/[0.04]">
-            {events.map((evt, i) => {
+            {paginatedEvents.map((evt, i) => {
               const date = new Date(evt.timestamp * 1000);
               const timeStr =
                 evt.timestamp > 0
@@ -269,7 +282,7 @@ export default function ActivityPage() {
                     date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
                   : "";
               const config = EVENT_CONFIG[evt.type] || {
-                emoji: "📌",
+                icon: <Info className="h-5 w-5 text-slate-400" />,
                 label: evt.label,
                 badgeColor: "text-slate-300 bg-slate-800 border-slate-700",
               };
@@ -280,8 +293,8 @@ export default function ActivityPage() {
                   className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:px-6 hover:bg-slate-800/20 transition-colors"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 border border-white/[0.08] text-lg">
-                      {config.emoji}
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 border border-white/[0.08]">
+                      {config.icon}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -315,7 +328,35 @@ export default function ActivityPage() {
               );
             })}
           </div>
-        </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-white/[0.06] px-6 py-4">
+              <span className="text-xs font-mono text-slate-500">
+                Page {page + 1} of {totalPages} ({events.length} events)
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  className="flex items-center gap-1 rounded-lg border border-white/[0.08] bg-slate-900 px-3 py-1.5 text-xs font-mono text-slate-300 hover:bg-slate-800 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  Prev
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                  disabled={page >= totalPages - 1}
+                  className="flex items-center gap-1 rounded-lg border border-white/[0.08] bg-slate-900 px-3 py-1.5 text-xs font-mono text-slate-300 hover:bg-slate-800 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      )}
+        </AnimatePresence>
       )}
     </AppLayout>
   );

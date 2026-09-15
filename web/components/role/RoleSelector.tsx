@@ -1,6 +1,7 @@
 "use client";
 
 import { useRole, type Role } from "@/lib/context/RoleContext";
+import { useRouter } from "next/navigation";
 import { ShieldCheck, Coins, TrendingUp, ArrowRight } from "lucide-react";
 
 const roles: {
@@ -47,6 +48,7 @@ const roles: {
 
 export function RoleSelector() {
   const { setRole } = useRole();
+  const router = useRouter();
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
@@ -75,7 +77,10 @@ export function RoleSelector() {
             return (
               <button
                 key={r.id}
-                onClick={() => setRole(r.id)}
+                onClick={() => {
+                  setRole(r.id);
+                  router.push("/app");
+                }}
                 className={`group relative rounded-2xl border ${r.border} bg-slate-900/60 p-6 text-left transition-all duration-200 hover:-translate-y-1 hover:bg-slate-900/90`}
               >
                 {/* Icon */}

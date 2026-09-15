@@ -7,7 +7,9 @@ import {
   useEffect,
   useCallback,
   type ReactNode,
+  type ElementType,
 } from "react";
+import { ShieldCheck, Coins, TrendingUp } from "lucide-react";
 
 export type Role = "admin" | "issuer" | "investor";
 
@@ -34,10 +36,10 @@ const ROLE_DESCRIPTIONS: Record<Role, string> = {
   investor: "Buy tokens, earn yield, collateralize & borrow",
 };
 
-const ROLE_ICONS: Record<Role, string> = {
-  admin: "🔷",
-  issuer: "🟢",
-  investor: "🟡",
+const ROLE_ICONS: Record<Role, ElementType> = {
+  admin: ShieldCheck,
+  issuer: Coins,
+  investor: TrendingUp,
 };
 
 export function RoleProvider({ children }: { children: ReactNode }) {
