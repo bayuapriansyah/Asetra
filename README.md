@@ -1,31 +1,54 @@
 # AssetFlow
 
-> **Real-world assets, made programmable.**
+### Real-world assets, made programmable.
 
-AssetFlow is a lifecycle-driven RWA (Real-World Asset) financial platform built on BOT Chain. It transforms verified real-world assets — such as invoices — into programmable on-chain positions that can be invested in, traded, used as collateral, generate yield, and eventually settled.
+AssetFlow is a lifecycle-driven RWA platform that transforms verified real-world assets — such as invoices — into programmable on-chain positions. Instead of stopping at tokenization, AssetFlow continues the financial lifecycle through investment, trading, yield, collateral, borrowing, maturity, and settlement.
+
+> **Tokenization is only the beginning.**
+
+[Contract](https://scan.bohr.life/address/0xb1a6b9FE899fb8Bba4235Ec52181156199Df0b21) · [BOTScan](https://scan.bohr.life) · [GitHub](https://github.com/bayuapriansyah/AssetFlow)
+
+---
+
+## Overview
+
+Most RWA platforms stop at turning an asset into a token. AssetFlow goes further.
+
+Once a real-world asset is verified and tokenized on-chain, it enters a **programmable financial lifecycle**. Every state transition is enforced by a smart contract. Every financial action — invest, trade, collateralize, borrow, yield, settle — is governed by the asset's current lifecycle state.
+
+The result: a complete on-chain financial workflow for real-world assets, from creation to settlement.
 
 ---
 
 ## Problem
 
-Tokenization alone does not solve the full financial lifecycle of a real-world asset. Once an asset is tokenized, there is no standard on-chain mechanism for:
+### Tokenization is not enough
+
+Creating a token representing a real-world asset does not automatically provide:
 
 - Investment and financing
-- Secondary trading
-- Collateral use and borrowing
-- Yield accounting and claiming
+- Secondary market liquidity
+- Collateral utility
+- Borrowing capacity
+- Yield generation
 - Maturity enforcement
 - Settlement
 
-AssetFlow continues the workflow beyond token creation.
+### Fragmented RWA lifecycle
+
+In practice, document processing, verification, financing, trading, lending, and settlement exist as disconnected systems. There is no single on-chain workflow connecting them.
+
+### Poor asset state visibility
+
+Investors need to know: Is this asset verified? Funded? Active? Mature? Settled? Without clear lifecycle states, users cannot understand what actions are available or what the asset's financial status is.
 
 ---
 
 ## Solution
 
-AssetFlow gives every verified real-world asset a **programmable financial lifecycle**:
+AssetFlow models each real-world asset as a **lifecycle state machine**:
 
-```
+```text
 REAL-WORLD ASSET
       ↓
    CREATE
@@ -38,9 +61,9 @@ REAL-WORLD ASSET
       ↓
    INVEST
       ↓
-  POSITION
-  ↙    ↓    ↘
-TRADE  YIELD  COLLATERAL
+POSITION
+  ↙   ↓   ↘
+TRADE YIELD COLLATERAL
               ↓
             BORROW
               ↓
@@ -51,102 +74,278 @@ TRADE  YIELD  COLLATERAL
           SETTLEMENT
 ```
 
-The asset's **current state determines which financial actions are available**. The smart contract enforces the rules at every step.
+**The current state determines which financial actions are available.** Invalid transitions are rejected on-chain.
 
 ---
 
-## Core Feature: Lifecycle Engine
+## Main Feature — Programmable RWA Lifecycle
 
-The lifecycle is not just a UI visualization — it is enforced by the smart contract:
+The lifecycle is a smart contract state machine, not just a frontend visualization:
 
-| State | Available Actions |
-|-------|-------------------|
-| CREATED | Verify |
-| VERIFIED | Tokenize |
-| TOKENIZED | List |
-| LISTED | Invest |
-| ACTIVE | Trade, Yield, Collateral, Borrow, Repay |
-| MATURED | Settle |
-| SETTLED | None (closed) |
+```text
+CREATED
+   ↓
+VERIFIED
+   ↓
+TOKENIZED
+   ↓
+LISTED
+   ↓
+FUNDED
+   ↓
+ACTIVE
+   ↓
+MATURED
+   ↓
+SETTLED
+```
 
-Invalid state transitions revert on-chain.
+Each state transition is enforced on-chain. For example:
+
+- `CREATED → SETTLED` is **invalid** and will revert.
+- `LISTED → ACTIVE` only happens automatically when funding target is met.
+
+### State-Based Actions
+
+| State | Who Can Act | Available Actions |
+|-------|-------------|-------------------|
+| `CREATED` | Admin | Verify asset |
+| `VERIFIED` | Issuer | Tokenize (set supply + price) |
+| `TOKENIZED` | Issuer | Publish to marketplace |
+| `LISTED` | Investor | Buy tokens (pay tUSDT) |
+| `FUNDED` | — | Auto-advances to ACTIVE |
+| `ACTIVE` | Investor + Issuer | Trade, yield, collateral, borrow, repay, mature |
+| `MATURED` | Issuer | Complete settlement |
+| `SETTLED` | — | Lifecycle closed |
+
+### Role System
+
+| Role | Capabilities |
+|------|-------------|
+| **Admin** | Verify assets, monitor protocol |
+| **Issuer** | Create, tokenize, list, mature, settle assets |
+| **Investor** | Buy tokens, trade P2P, collateralize, borrow, claim yield |
+
+Roles are switchable in the UI for demo purposes. The smart contract enforces `onlyAdmin` and issuer-ownership checks.
+
+---
+
+## Primary Use Case — Invoice Financing
+
+```text
+Invoice #INV-2050
+Issuer:    0x1562...7E6a
+Face Value: $50
+Yield:     8.2% APY
+Supply:    100 tokens
+Price:     $0.50 / token
+```
+
+**Business flow:**
+
+1. Issuer has a $50 invoice due in 30 days
+2. Instead of waiting, issuer tokenizes it into 100 tokens at $0.50 each
+3. Investors buy tokens → issuer gets immediate liquidity
+4. Investors earn 8.2% APY yield while holding
+5. Investors can use tokens as collateral to borrow tUSDT
+6. At maturity, issuer settles and lifecycle closes
+
+---
+
+## Demo Flow
+
+Watch an asset come alive.
+
+```text
+[1] Issuer:   Create Asset (face value, yield, maturity, doc hash)
+       ↓
+[2] Admin:    Verify Asset (onlyAdmin)
+       ↓
+[3] Issuer:   Tokenize (set token supply → price auto-calculated)
+       ↓
+[4] Issuer:   Publish to Marketplace (state → LISTED)
+       ↓
+[5] Investor: Buy Tokens (approve tUSDT → buyTokens → position created)
+       ↓            ↓
+       ↓      [Auto: FUNDED → ACTIVE when target met]
+       ↓
+[6] Investor: Deposit Collateral (lock tokens as collateral)
+       ↓
+[7] Investor: Borrow tUSDT (up to 60% LTV of collateral)
+       ↓
+[8] Investor: Repay loan (approve tUSDT → repay)
+       ↓
+[9] Investor: Create Sell Order (secondary market P2P)
+       ↓
+[10] Investor 2: Buy from Sell Order
+       ↓
+[11] Investor: Claim Yield (accrues daily: invest × yieldBps / 365 × days)
+       ↓
+[12] Issuer:  Mature Asset (after due date)
+       ↓
+[13] Issuer:  Complete Settlement (lifecycle closes)
+```
+
+Every transaction is recorded on BOT Chain and verifiable on the explorer.
+
+---
+
+## Features
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| RWA Registry | ✅ | Create and store asset metadata on-chain |
+| Verification | ✅ | Admin-only verification with on-chain audit trail |
+| Tokenization | ✅ | Configurable token supply, auto-calculated price per unit |
+| Marketplace | ✅ | Browse listed assets with lifecycle status |
+| Investment | ✅ | Buy tokens with tUSDT, position tracking |
+| Portfolio | ✅ | View all investment positions |
+| Lifecycle Engine | ✅ | 8-state machine enforced by smart contract |
+| Trading P2P | ✅ | Create/cancel sell orders, execute trades |
+| Collateral | ✅ | Deposit/withdraw with 60% max LTV enforcement |
+| Borrowing | ✅ | Borrow against collateral, health factor monitoring |
+| Yield | ✅ | Time-based yield accrual, claim to wallet |
+| Maturity | ✅ | Issuer-triggered after due date |
+| Settlement | ✅ | Lifecycle closure with principal + yield event |
+| Activity Log | ✅ | On-chain event history |
+| Role-Based UI | ✅ | Admin / Issuer / Investor with route protection |
+
+---
+
+## Why Blockchain?
+
+AssetFlow uses blockchain as the execution and source-of-truth layer for financial state.
+
+### On-chain
+
+- Asset lifecycle state machine
+- Ownership and position accounting
+- Investment and payment flow
+- Secondary market trading
+- Collateral locks and LTV enforcement
+- Debt tracking and repayment
+- Yield accrual state
+- Maturity and settlement
+
+### Off-chain
+
+- Document storage and hash verification
+- UI presentation and routing
+- Wallet interaction (MetaMask)
+
+Blockchain does not independently verify whether a physical invoice is authentic. Verification is a controlled step performed by the admin before the asset enters its on-chain lifecycle. The smart contract then enforces all financial state transitions.
 
 ---
 
 ## Architecture
 
-```
-                    USER
-                      |
-                      v
-              AssetFlow Frontend
-                      |
-               wagmi / viem
-                      |
-                   MetaMask
-                      |
-                      v
-                 BOT Chain (968)
-                      |
-                      v
-              AssetFlow.sol (deployed)
+```mermaid
+flowchart TD
+    A[User] -->|Connect Wallet| B[AssetFlow Frontend]
+    B -->|wagmi + viem| C[MetaMask]
+    C -->|Sign & Send| D[BOT Chain Testnet]
+    D -->|Execute| E[AssetFlow.sol]
+    D -->|Payment| F[tUSDT Token]
+    E -->|Events| G[BOT Chain Explorer]
 ```
 
-### Frontend
-
-- **Framework:** Next.js 16 + React 19 + TypeScript
-- **Styling:** Tailwind CSS v4
-- **Web3:** wagmi v2 + viem
-- **Network:** BOT Chain Testnet (Chain ID 968)
-
-### Smart Contract
-
-- **Language:** Solidity 0.8.20
-- **Testing:** Foundry (28/28 tests passing)
-- **Deployment:** BOT Chain Testnet via Remix IDE
+| Layer | Responsibility |
+|-------|---------------|
+| **Frontend** | UI, routing, wallet connection, transaction handling |
+| **wagmi + viem** | Web3 provider, contract reads/writes, transaction receipts |
+| **MetaMask** | Wallet, signing, broadcasting |
+| **BOT Chain** | EVM execution, state storage, event emission |
+| **AssetFlow.sol** | Lifecycle logic, access control, financial operations |
+| **tUSDT** | ERC-20 payment token (6 decimals) |
 
 ---
 
 ## Smart Contract
 
-**Address:** `0x20a755b4aE0AB9bE9d1D7b456018ddb7F0dA6669`
+**AssetFlow.sol** — Single contract managing all assets, positions, and financial operations.
 
-**Explorer:** [View on BOT Chain Explorer](https://scan.bohr.life/address/0x20a755b4aE0AB9bE9d1D7b456018ddb7F0dA6669)
+### Lifecycle Functions
 
-### Functions
+| Function | Access | Description |
+|----------|--------|-------------|
+| `createAsset()` | Issuer | Register new RWA with metadata |
+| `verifyAsset()` | Admin | Mark asset as verified |
+| `tokenizeAsset()` | Issuer | Set token supply, calculate price |
+| `listAsset()` | Issuer | Publish to marketplace |
+| `buyTokens()` | Investor | Purchase tokens with tUSDT |
+| `matureAsset()` | Issuer | Transition to MATURED (after due date) |
+| `settleAsset()` | Issuer | Close lifecycle |
 
-| Category | Functions |
-|----------|-----------|
-| Core | `createAsset()`, `verifyAsset()`, `tokenizeAsset()`, `listAsset()`, `buyTokens()` |
-| Lifecycle | `matureAsset()`, `settleAsset()` |
-| Trading | `createSellOrder()`, `cancelSellOrder()`, `executeTrade()` |
-| Credit | `depositCollateral()`, `withdrawCollateral()`, `borrow()`, `repay()` |
-| Yield | `calculateYield()`, `claimYield()` |
-| Views | `getPosition()`, `getAvailableUnits()`, `getBorrowedAmount()`, `getHealth()`, `getHoldingScore()` |
+### Financial Functions
+
+| Function | Access | Description |
+|----------|--------|-------------|
+| `createSellOrder()` | Investor | List tokens on secondary market |
+| `cancelSellOrder()` | Seller | Cancel active sell order |
+| `executeTrade()` | Buyer | Buy from sell order |
+| `depositCollateral()` | Investor | Lock tokens as collateral |
+| `withdrawCollateral()` | Investor | Release collateral (LTV check) |
+| `borrow()` | Investor | Borrow tUSDT against collateral |
+| `repay()` | Investor | Repay borrowed tUSDT |
+| `claimYield()` | Investor | Claim accrued yield |
+
+### View Functions
+
+| Function | Returns |
+|----------|---------|
+| `getPosition()` | amount, totalInvested, holdingStart, yield, collateral |
+| `getHealth()` | healthFactor, healthy (bool) |
+| `getAvailableUnits()` | Remaining token supply |
+| `getAvailableCredit()` | Max borrowable amount |
+| `getHoldingScore()` | Units × holding days |
+| `getSellOrder()` | Order details |
 
 ### Events
 
-`AssetCreated`, `AssetVerified`, `AssetTokenized`, `AssetListed`, `InvestmentMade`, `SellOrderCreated`, `SellOrderCancelled`, `TradeExecuted`, `CollateralDeposited`, `CollateralWithdrawn`, `Borrowed`, `Repaid`, `YieldClaimed`, `AssetMatured`, `AssetSettled`
+`AssetCreated` · `AssetVerified` · `AssetTokenized` · `AssetListed` · `InvestmentMade` · `SellOrderCreated` · `SellOrderCancelled` · `TradeExecuted` · `CollateralDeposited` · `CollateralWithdrawn` · `Borrowed` · `Repaid` · `YieldClaimed` · `AssetMatured` · `AssetSettled`
 
 ---
 
-## Frontend Pages
+## Yield Model
 
-| Page | URL | Description |
-|------|-----|-------------|
-| Landing | `/` | Hero, lifecycle visualization, marketplace preview |
-| Overview | `/app` | Portfolio summary, active positions |
-| Marketplace | `/app/marketplace` | Browse and filter listed assets |
-| Asset Detail | `/app/assets/[id]` | Full asset info, lifecycle, actions |
-| Portfolio | `/app/portfolio` | Investment positions table |
-| Yield | `/app/yield` | Yield accrual, holding scores |
-| Trading | `/app/trading` | Secondary market buy/sell |
-| Collateral | `/app/collateral` | Deposit/withdraw collateral |
-| Borrow | `/app/borrow` | Borrow/repay with health factor |
-| Create Asset | `/app/issuer/create` | Register new asset |
-| My Offerings | `/app/issuer/assets` | Issuer's created assets |
-| Activity | `/app/activity` | Transaction history from events |
-| Settings | `/app/settings` | Wallet and network info |
+```text
+yield = (totalInvested × yieldBps / 10,000) / 365 × daysHeld
+```
+
+- **Simple annual calculation** (not compound)
+- Yield accrues daily based on holding duration
+- Minimum 1 day holding required for claimable yield
+- Claimable anytime (does not require maturity)
+
+### Collateral & Borrowing
+
+```text
+creditCapacity = collateralValue × 60%    (max LTV = 60%)
+
+healthFactor = (collateralValue × 10,000) / (borrowed × 60)
+healthy = healthFactor ≥ 100
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16.3.5 |
+| UI | React 19.2.8 |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| Icons | Lucide React |
+| Animation | Framer Motion |
+| Charts | Recharts |
+| PDF | pdfjs-dist |
+| Web3 | wagmi 3.7.7 + viem 2.56.5 |
+| Wallet | MetaMask |
+| Smart Contract | Solidity 0.8.20 |
+| Contract Tooling | Foundry |
+| Blockchain | BOT Chain Testnet |
+| Payment Token | tUSDT (6 decimals) |
 
 ---
 
@@ -163,34 +362,58 @@ Invalid state transitions revert on-chain.
 
 ---
 
-## Local Setup
+## Deployment
+
+| Property | Value |
+|----------|-------|
+| Network | BOT Chain Testnet |
+| Contract | AssetFlow.sol |
+| Address | `0xb1a6b9FE899fb8Bba4235Ec52181156199Df0b21` |
+| tUSDT | `0x75edC9335175Fc0552D51D48439F229c10420fe3` |
+| Explorer | [View on BOTScan](https://scan.bohr.life/address/0xb1a6b9FE899fb8Bba4235Ec52181156199Df0b21) |
+
+### Deployment Workflow
+
+```text
+AssetFlow.sol
+    ↓
+Foundry (compile + test)
+    ↓
+Remix IDE (deploy via MetaMask)
+    ↓
+BOT Chain Testnet
+    ↓
+Contract Address
+    ↓
+web/.env.local (NEXT_PUBLIC_ASSETFLOW_ADDRESS)
+    ↓
+Frontend reads contract
+```
+
+---
+
+## Local Development
 
 ### Prerequisites
 
 - Node.js v18+
-- npm or yarn
 - MetaMask browser extension
+- BOT Chain Testnet added to MetaMask
 
-### Installation
+### Frontend
 
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd AssetFlow
-
-# Install frontend dependencies
-cd web
+git clone https://github.com/bayuapriansyah/AssetFlow.git
+cd AssetFlow/web
 npm install
-
-# Run development server
 npm run dev
 ```
 
-### Smart Contract (Foundry)
+### Smart Contract
 
 ```bash
 cd contracts
-forge install
+forge build
 forge test
 ```
 
@@ -198,55 +421,26 @@ forge test
 
 Create `web/.env.local`:
 
+```env
+NEXT_PUBLIC_BOT_CHAIN_ID=968
+NEXT_PUBLIC_BOT_RPC_URL=https://rpc.bohr.life
+NEXT_PUBLIC_BOT_EXPLORER_URL=https://scan.bohr.life
+NEXT_PUBLIC_ASSETFLOW_ADDRESS=0xb1a6b9FE899fb8Bba4235Ec52181156199Df0b21
+NEXT_PUBLIC_TUSDT_ADDRESS=0x75edC9335175Fc0552D51D48439F229c10420fe3
 ```
-NEXT_PUBLIC_ASSETFLOW_ADDRESS=0x20a755b4aE0AB9bE9d1D7b456018ddb7F0dA6669
-```
+
+> Never commit `.env.local` with real keys or secrets.
 
 ### MetaMask Setup
 
 1. Add BOT Chain Testnet:
-   - Network Name: BOT Chain Testnet
+   - Network Name: `BOT Chain Testnet`
    - RPC URL: `https://rpc.bohr.life`
    - Chain ID: `968`
-   - Currency Symbol: BOT
+   - Currency Symbol: `BOT`
    - Block Explorer: `https://scan.bohr.life`
-
-2. Get testnet BOT tokens from the faucet
-
----
-
-## Demo Flow
-
-The full demo follows one invoice through its entire lifecycle:
-
-```
-1. Create Invoice        → Form submit → MetaMask → Created state
-2. Verify                → Admin wallet → Verified state
-3. Tokenize              → Set supply → Tokenized state
-4. List on Marketplace   → Listed state → Visible to investors
-5. Invest                → Buy tokens → Position created → Portfolio updates
-6. Claim Yield           → Yield accrues over time → Claim to wallet
-7. Deposit Collateral    → Use position as collateral
-8. Borrow                → Borrow against collateral → Health factor
-9. Repay                 → Repay loan
-10. Mature Asset         → ACTIVE → MATURED state
-11. Settle Asset         → MATURED → SETTLED state → Lifecycle complete
-```
-
-Every transaction is recorded on BOT Chain and verifiable on the explorer.
-
----
-
-## Demo Asset
-
-```text
-Invoice #INV-2048
-PT Nusantara Manufacturing → Global Industrial Corp.
-Face Value: $100,000
-Expected Yield: 8.2%
-Maturity: 90 days
-Token Supply: 100,000 units
-```
+2. Get testnet BOT from [faucet](https://faucet.botchain.ai/basic)
+3. Get testnet tUSDT from faucet (1,000 tUSDT per claim)
 
 ---
 
@@ -257,60 +451,86 @@ Token Supply: 100,000 units
 ```bash
 cd contracts
 forge test
-# 28/28 tests passing
 ```
 
-Test coverage:
-- Lifecycle state transitions
-- Invalid state reverts
-- Access control (admin, issuer, investor)
-- Investment and position accounting
-- Trading (create, cancel, execute)
-- Collateral (deposit, withdraw, LTV enforcement)
-- Borrowing (borrow, repay, health)
-- Yield calculation
-- Maturity and settlement
+```text
+Suite result: ok. 28 passed; 0 failed; 0 skipped
+```
+
+**Coverage:**
+
+| Category | Tests |
+|----------|-------|
+| Lifecycle state transitions | ✅ |
+| Invalid state reverts | ✅ |
+| Access control (admin, issuer) | ✅ |
+| Investment + position accounting | ✅ |
+| Trading (create, cancel, execute) | ✅ |
+| Collateral (deposit, withdraw, LTV) | ✅ |
+| Borrowing + repayment | ✅ |
+| Yield calculation | ✅ |
+| Maturity + settlement | ✅ |
 
 ### Frontend Build
 
 ```bash
 cd web
 npm run build
-# 15/15 pages compiled
 ```
+
+All pages compile clean (HTTP 200).
 
 ---
 
 ## Project Structure
 
-```
+```text
 AssetFlow/
 ├── contracts/
 │   ├── src/
-│   │   └── AssetFlow.sol          # Main smart contract
+│   │   └── AssetFlow.sol              # Main smart contract (539 lines)
 │   ├── test/
-│   │   └── AssetFlow.t.sol        # 28 Foundry tests
-│   └── foundry.toml
+│   │   └── AssetFlow.t.sol            # 28 Foundry tests
+│   ├── lib/                            # Foundry dependencies
+│   └── foundry.toml                    # Solidity 0.8.20, optimizer 200
+│
 ├── web/
-│   ├── app/                        # Next.js pages
-│   │   ├── page.tsx                # Landing page
-│   │   ├── app/
-│   │   │   ├── page.tsx            # Overview
-│   │   │   ├── marketplace/
-│   │   │   ├── assets/[id]/
-│   │   │   ├── portfolio/
-│   │   │   ├── yield/
-│   │   │   ├── trading/
-│   │   │   ├── collateral/
-│   │   │   ├── borrow/
-│   │   │   ├── issuer/
-│   │   │   ├── activity/
-│   │   │   └── settings/
-│   ├── components/                 # Reusable components
-│   ├── hooks/                      # Custom React hooks
-│   ├── lib/                        # Utilities
-│   ├── config/                     # ABI + contract address
-│   └── types/                      # TypeScript types
+│   ├── app/
+│   │   ├── page.tsx                    # Landing page
+│   │   ├── globals.css                 # Global styles
+│   │   └── app/
+│   │       ├── page.tsx                # Overview / Dashboard
+│   │       ├── marketplace/            # Browse assets
+│   │       ├── assets/[id]/            # Asset detail + actions
+│   │       ├── portfolio/              # Investment positions
+│   │       ├── yield/                  # Yield accrual
+│   │       ├── trading/                # Secondary P2P market
+│   │       ├── collateral/             # Collateral vault
+│   │       ├── borrow/                 # Borrow + repay
+│   │       ├── issuer/
+│   │       │   ├── create/             # Create new asset
+│   │       │   └── assets/             # My offerings
+│   │       ├── admin/
+│   │       │   └── verify/             # Admin verification
+│   │       ├── activity/               # On-chain event history
+│   │       └── settings/               # Wallet + network info
+│   │
+│   ├── components/
+│   │   ├── layout/                     # Navbar, Sidebar, AppLayout
+│   │   ├── role/                       # RoleSelector, RoleGuard
+│   │   └── ui/                         # Skeleton, shared UI
+│   │
+│   ├── hooks/                          # useBuyTokens, useLifecycle, etc.
+│   ├── lib/
+│   │   ├── utils/format.ts             # formatUSD, formatBps, etc.
+│   │   ├── utils/errors.ts             # parseContractError (hex selector decoding)
+│   │   └── context/RoleContext.tsx      # Role state management
+│   │
+│   ├── config/contracts.ts             # ABI + contract addresses
+│   ├── types/asset.ts                  # TypeScript types
+│   └── .env.local                      # Environment config
+│
+├── AssetFlow_PRD_v1.1.md               # Product Requirements Document
 └── README.md
 ```
 
@@ -318,22 +538,25 @@ AssetFlow/
 
 ## Limitations
 
-- Single contract for all assets (not separate ERC-20 per asset)
+- Single contract manages all assets (not separate ERC-20 per asset)
 - No off-chain document storage or AI extraction in MVP
-- No advanced order book or auction mechanism
 - Yield uses simple annual calculation (not compound)
-- No institutional compliance layer
+- Settlement emits event but does not automatically transfer principal back
+- No institutional KYC/AML compliance layer
+- No oracle infrastructure for real-world price feeds
+- Role switching is UI-level (contract enforces admin + issuer ownership only)
 
 ---
 
 ## Future Improvements
 
-- Off-chain document storage and AI extraction
-- Multiple RWA types (real estate, trade receivables, equipment)
+- Off-chain document storage + AI extraction
+- Multiple RWA asset classes (real estate, trade receivables, equipment)
 - Advanced order book with limit orders
-- Oracle integration for real-world price feeds
-- Multi-asset portfolio management
-- Institutional compliance and KYC
+- Oracle integration for real-world data feeds
+- Production-grade settlement with automatic principal transfer
+- Institutional compliance and KYC/AML
+- Multi-asset portfolio analytics
 
 ---
 
@@ -341,4 +564,4 @@ AssetFlow/
 
 **Girl Meets Tech — Build Week Hackathon Vol.2**
 
-Built on BOT Chain (EVM) with Next.js, wagmi, viem, and Foundry.
+Built on BOT Chain (EVM) · Solidity · Next.js · wagmi · viem · Foundry
