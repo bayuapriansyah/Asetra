@@ -343,6 +343,11 @@
     linear-gradient(to bottom, rgba(100, 160, 255, 0.028) 1px, transparent 1px);
 }
 
+.lp-dot-grid {
+  background-size: 28px 28px;
+  background-image: radial-gradient(rgba(100, 160, 255, 0.14) 1.2px, transparent 1.2px);
+}
+
 .lp-text-gradient {
   background: linear-gradient(to right, #4a9eff 0%, #ffffff 100%);
   -webkit-background-clip: text;
@@ -685,7 +690,7 @@
   }
 }
 
-/* Smooth anchor scrolling (landing navbar) with reduced-motion guard */
+/* Native hardware-accelerated smooth scrolling for anchor links */
 html {
   scroll-behavior: smooth;
 }
@@ -695,3 +700,22 @@ html {
     scroll-behavior: auto;
   }
 }
+
+/* Premium dark custom scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #080a0f;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 160, 255, 0.22);
+  border-radius: 9999px;
+  border: 1px solid #080a0f;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 160, 255, 0.45);
+}
+
+

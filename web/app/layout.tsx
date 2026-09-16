@@ -28,10 +28,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-scroll-behavior="smooth"
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} dark antialiased scroll-smooth`}
     >
-      <body className="min-h-full flex flex-col bg-[#080a0f] text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+      <body className="min-h-screen flex flex-col bg-[#080a0f] text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
         <Web3Provider>
           <RoleProvider>
             {children}

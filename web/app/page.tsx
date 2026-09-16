@@ -5,10 +5,9 @@ import { useState, useEffect, useRef } from "react";
 import { Reveal } from "@/components/landing/Reveal";
 import { RevealCard } from "@/components/landing/RevealCard";
 import { LandingNavbar } from "@/components/landing/LandingNavbar";
-import ParticleNetwork from "@/components/landing/ParticleNetwork";
-import DigitalGlobe from "@/components/landing/DigitalGlobe";
-import { BackgroundPaths } from "@/components/landing/BackgroundPaths";
+import RotatingEarth from "@/components/ui/wireframe-dotted-globe";
 import { SpotlightCard } from "spotlight-card";
+
 import {
   ArrowRight,
   Shield,
@@ -259,54 +258,60 @@ export default function LandingPage() {
       <LandingNavbar />
 
       {/* ── Hero ────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden lp-aurora px-6 pt-28 pb-20 md:pt-36 md:pb-28">
-            <div className="absolute inset-0 lp-grid [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)] opacity-50" />
-        {/* <ParticleNetwork /> */}
-        <DigitalGlobe />
-        <BackgroundPaths className="absolute inset-0">
-          <div className="w-full h-full" />
-        </BackgroundPaths>
-        <div className="relative mx-auto flex max-w-7xl flex-col items-center text-center">
-          <Reveal>
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-[rgba(100,160,255,0.15)] bg-[rgba(255,255,255,0.04)] px-4 py-1.5">
-              <span className="lp-pulse h-2 w-2 rounded-full bg-[#4a9eff]" />
-              <span className="text-[11px] font-bold tracking-[0.16em] text-[#4a9eff] uppercase" style={{ fontFamily: "var(--font-display)" }}>
-                Live on Bohr Testnet — Chain 968
-              </span>
-            </div>
+      <section className="relative overflow-hidden lp-aurora px-6 pt-28 pb-20 md:pt-20 md:pb-28">
+        <div className="absolute inset-0 lp-grid [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)] opacity-40 pointer-events-none" />
+        <div className="absolute inset-0 lp-dot-grid [mask-image:radial-gradient(ellipse_85%_75%_at_50%_35%,black,transparent)] opacity-60 pointer-events-none" />
+        {/* Radial glow behind globe */}
+        <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 [mask-image:radial-gradient(ellipse_80%_80%_at_80%_50%,black,transparent)]"
+          style={{ background: "radial-gradient(ellipse 65% 75% at 82% 48%, rgba(19,109,228,0.22), transparent 70%)" }} />
 
-            <h1 className="mt-7 text-5xl sm:text-6xl xl:text-7xl font-bold tracking-tight text-white leading-[1.06]" style={{ fontFamily: "var(--font-display)" }}>
-              Real World Assets,
-              <br />
-              <span className="lp-text-gradient italic">programmable on-chain.</span>
-            </h1>
-
-            <p className="mt-6 mx-auto max-w-xl text-base sm:text-lg text-[rgba(255,255,255,0.55)] leading-relaxed" style={{ fontFamily: "var(--font-display)" }}>
-              Asetra transforms verified invoices, receivables, and private credit into
-              yield-bearing DeFi positions — with a deterministic on-chain state machine
-              from origination to automated settlement.
-            </p>
-
-            <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
-              <Link href="/app/marketplace" className="lp-btn-primary">
-                Explore Assets
-                <span className="lp-btn-arrow">
-                  <ArrowRight className="h-4 w-4 text-[#0553DA]" />
+        <div className="relative mx-auto flex max-w-7xl flex-col items-center gap-10 lg:flex-row lg:items-center lg:gap-6 min-h-[600px] xl:min-h-[680px]">
+          {/* ── Left: copy ── */}
+          <div className="flex-1 text-center lg:text-left z-10 max-w-2xl py-4">
+            <Reveal delay={0.20}>
+              <div className="inline-flex items-center gap-2.5 rounded-full border border-[rgba(100,160,255,0.15)] bg-[rgba(255,255,255,0.04)] px-4 py-1.5">
+                <span className="lp-pulse h-2 w-2 rounded-full bg-[#4a9eff]" />
+                <span className="text-[11px] font-bold tracking-[0.16em] text-[#4a9eff] uppercase" style={{ fontFamily: "var(--font-display)" }}>
+                  Live on Bohr Testnet — Chain 968
                 </span>
-              </Link>
-              <Link href="/app" className="lp-btn-outline">
-                Open App
-                <span className="lp-btn-arrow">
-                  <ArrowUpRight className="h-4 w-4 text-white" />
-                </span>
-              </Link>
-            </div>
+              </div>
 
-            <div className="mt-10 flex items-center justify-center gap-6 text-[11px] font-bold uppercase tracking-[0.14em] text-[rgba(255,255,255,0.35)]">
-              <span className="flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5 text-[#4a9eff]" /> Audited contracts</span>
-              <span className="flex items-center gap-2"><Lock className="h-3.5 w-3.5 text-[#4a9eff]" /> Proof of document hash</span>
-            </div>
-          </Reveal>
+              <h1 className="mt-7 text-5xl sm:text-6xl xl:text-7xl font-bold tracking-tight text-white leading-[1.06]" style={{ fontFamily: "var(--font-display)" }}>
+                Real World Assets,
+                <br />
+                <span className="lp-text-gradient italic">programmable on-chain.</span>
+              </h1>
+
+              <p className="mt-6 mx-auto max-w-xl lg:mx-0 text-base sm:text-lg text-[rgba(255,255,255,0.55)] leading-relaxed" style={{ fontFamily: "var(--font-display)" }}>
+                Asetra transforms verified invoices, receivables, and private credit into
+                yield-bearing DeFi positions — with a deterministic on-chain state machine
+                from origination to automated settlement.
+              </p>
+
+              <div className="mt-9 flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                <Link href="/app/marketplace" className="lp-btn-primary">
+                  Explore Assets
+                  <span className="lp-btn-arrow">
+                    <ArrowRight className="h-4 w-4 text-[#0553DA]" />
+                  </span>
+                </Link>
+                <Link href="/app" className="lp-btn-outline">
+                  Open App
+                  <span className="lp-btn-arrow">
+                    <ArrowUpRight className="h-4 w-4 text-white" />
+                  </span>
+                </Link>
+              </div>
+
+            </Reveal>
+          </div>
+
+          {/* ── Right: globe (desktop: side column, mobile: large watermark cropped to bottom-right ~1/2 visible) ── */}
+          <div className="absolute -bottom-70 -right-70 sm:-bottom-40 sm:-right-32 lg:static lg:bottom-auto lg:right-auto lg:flex-1 flex items-center justify-center lg:justify-end lg:w-full lg:-mr-10 xl:-mr-20 pointer-events-none lg:pointer-events-auto opacity-40 sm:opacity-50 lg:opacity-100 z-0 lg:z-auto transition-opacity duration-300">
+            <Reveal delay={0.20} y={10}>
+              <RotatingEarth size={580} mobileSize={560} className="flex justify-center lg:justify-end" />
+            </Reveal>
+          </div>
         </div>
       </section>
 
