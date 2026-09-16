@@ -10,7 +10,7 @@ import {
 } from "@/hooks/useLifecycle";
 import { useBuyTokens } from "@/hooks/useBuyTokens";
 import { useClaimYield } from "@/hooks/useClaimYield";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
 import { ASSET_STATE_LABELS, AssetState } from "@/types/asset";
 import { formatUSD, formatBps, daysUntil, shortenAddress, timestampToDate, calcTokenCost } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
@@ -78,9 +78,9 @@ function SettlementSummary({ assetId, publicClient }: { assetId: number; publicC
     if (!publicClient) return;
     (async () => {
       try {
-        const abi = ASSETFLOW_ABI.find((item: any) => item.type === "event" && item.name === "AssetSettled") as any;
+        const abi = ASETRA_ABI.find((item: any) => item.type === "event" && item.name === "AssetSettled") as any;
         const logs = await publicClient.getLogs({
-          address: ASSETFLOW_ADDRESS, event: abi, fromBlock: BigInt(0), toBlock: "latest",
+          address: ASETRA_ADDRESS, event: abi, fromBlock: BigInt(0), toBlock: "latest",
           args: { id: BigInt(assetId) },
         });
         if (logs.length > 0) {
@@ -187,16 +187,16 @@ function TradingActivityChart({
         const fromBlock = latestBlock > BigInt(50000) ? latestBlock - BigInt(50000) : BigInt(0);
 
         const investmentLogs = await publicClient.getLogs({
-          address: ASSETFLOW_ADDRESS,
-          event: ASSETFLOW_ABI.find((e: any) => e.type === "event" && e.name === "InvestmentMade"),
+          address: ASETRA_ADDRESS,
+          event: ASETRA_ABI.find((e: any) => e.type === "event" && e.name === "InvestmentMade"),
           fromBlock,
           toBlock: "latest",
           args: { id: BigInt(assetId) },
         });
 
         const tradeLogs = await publicClient.getLogs({
-          address: ASSETFLOW_ADDRESS,
-          event: ASSETFLOW_ABI.find((e: any) => e.type === "event" && e.name === "TradeExecuted"),
+          address: ASETRA_ADDRESS,
+          event: ASETRA_ABI.find((e: any) => e.type === "event" && e.name === "TradeExecuted"),
           fromBlock,
           toBlock: "latest",
           args: { assetId: BigInt(assetId) },
@@ -519,7 +519,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     (async () => {
       try {
         const admin = await publicClient.readContract({
-          address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "admin",
+          address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "admin",
         });
         setIsAdmin(address.toLowerCase() === (admin as string).toLowerCase());
       } catch { /* ignore */ }
@@ -552,11 +552,11 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
       try {
         const [yield_, pos] = await Promise.all([
           publicClient.readContract({
-            address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI,
+            address: ASETRA_ADDRESS, abi: ASETRA_ABI,
             functionName: "calculateYield", args: [BigInt(assetId), address],
           }),
           publicClient.readContract({
-            address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI,
+            address: ASETRA_ADDRESS, abi: ASETRA_ABI,
             functionName: "getPosition", args: [BigInt(assetId), address],
           }),
         ]);
@@ -593,9 +593,9 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
 
       for (const def of eventDefs) {
         try {
-          const abi = ASSETFLOW_ABI.find((item: any) => item.type === "event" && item.name === def.name) as any;
+          const abi = ASETRA_ABI.find((item: any) => item.type === "event" && item.name === def.name) as any;
           const logs = await publicClient.getLogs({
-            address: ASSETFLOW_ADDRESS, event: abi, fromBlock, toBlock: "latest",
+            address: ASETRA_ADDRESS, event: abi, fromBlock, toBlock: "latest",
             args: { assetId: BigInt(assetId) },
           });
           for (const log of logs) {
@@ -759,7 +759,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         {/* Contract Link */}
         <div className="flex items-center gap-3">
           <a
-            href={`${explorerBase}/address/${ASSETFLOW_ADDRESS}`}
+            href={`${explorerBase}/address/${ASETRA_ADDRESS}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-slate-900/80 px-3.5 py-1.5 text-xs font-bold text-slate-300 hover:border-slate-500 hover:text-white transition"

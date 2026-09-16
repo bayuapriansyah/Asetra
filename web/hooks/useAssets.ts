@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { usePublicClient } from "wagmi";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
 import type { AssetData, AssetState } from "@/types/asset";
 
 async function fetchAsset(publicClient: NonNullable<ReturnType<typeof usePublicClient>>, id: number): Promise<AssetData> {
-  const c = ASSETFLOW_ADDRESS;
-  const a = ASSETFLOW_ABI;
+  const c = ASETRA_ADDRESS;
+  const a = ASETRA_ABI;
   const i = BigInt(id);
 
   const [
@@ -98,8 +98,8 @@ export function useAllAssets() {
     if (!publicClient) return;
     try {
       const countResult = await publicClient.readContract({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "getAssetCount",
       });
       const total = Number(countResult);

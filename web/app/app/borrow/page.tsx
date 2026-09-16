@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient, useReadContract } from "wagmi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
 import { formatUSD } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
@@ -68,8 +68,8 @@ export default function BorrowPage() {
     setIsLoading(true);
     try {
       const countResult = await publicClient.readContract({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "getAssetCount",
       });
       const total = Number(countResult);
@@ -79,38 +79,38 @@ export default function BorrowPage() {
         try {
           const [pos, name, state, health, borrowed, available] = await Promise.all([
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "getPosition",
               args: [BigInt(i), address],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetName",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetState",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "getHealth",
               args: [BigInt(i), address],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "getBorrowedAmount",
               args: [BigInt(i), address],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "getAvailableCredit",
               args: [BigInt(i), address],
             }),
@@ -162,8 +162,8 @@ export default function BorrowPage() {
     setTxError(null);
     try {
       await writeContractAsync({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "borrow",
         args: [BigInt(selectedAsset), BigInt(borrowAmount) * BigInt(1e6)],
       });
@@ -173,7 +173,7 @@ export default function BorrowPage() {
   };
 
   const handleRepay = async () => {
-    if (selectedAsset === null) return;
+    if (selectedAsset === null || !publicClient) return;
     const asset = assets.find((a) => a.assetId === selectedAsset);
     if (!asset) return;
     setTxError(null);
@@ -183,7 +183,7 @@ export default function BorrowPage() {
         address: TUSDT_ADDRESS,
         abi: TUSDT_ABI,
         functionName: "approve",
-        args: [ASSETFLOW_ADDRESS, asset.borrowedAmount],
+        args: [ASETRA_ADDRESS, asset.borrowedAmount],
       });
 
       // Step 2: Wait for approve to be mined
@@ -194,8 +194,8 @@ export default function BorrowPage() {
 
       // Step 3: Repay (allowance is now set)
       await writeContractAsync({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "repay",
         args: [BigInt(selectedAsset), asset.borrowedAmount],
       });

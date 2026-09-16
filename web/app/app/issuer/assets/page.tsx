@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AssetCard } from "@/components/asset/AssetCard";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
 import type { AssetData, AssetState } from "@/types/asset";
 import { Package, Wallet, Plus, FolderKanban } from "lucide-react";
 import { IssuerAssetsSkeleton } from "@/components/skeleton/PageSkeletons";
@@ -23,7 +23,7 @@ export default function IssuerAssetsPage() {
     setIsLoading(true);
     try {
       const countResult = await publicClient.readContract({
-        address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "getAssetCount",
+        address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "getAssetCount",
       });
       const total = Number(countResult);
       const results: AssetData[] = [];
@@ -34,24 +34,24 @@ export default function IssuerAssetsPage() {
             fundedAmount, fundingTarget, maturity, yieldBps, docHash, state, pricePerUnit, availableUnits,
             verifier, verifiedAt, createdAt, externalRef,
           ] = await Promise.all([
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetIssuer", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetName", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetType", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetCounterparty", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetFaceValue", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetTokenSupply", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetFundedAmount", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetFundingTarget", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetMaturity", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetYieldBps", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetDocHash", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetState", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetPricePerUnit", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "getAvailableUnits", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetVerifier", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetVerifiedAt", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetCreatedAt", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetExternalRef", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetIssuer", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetName", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetType", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetCounterparty", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFaceValue", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetTokenSupply", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFundedAmount", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFundingTarget", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetMaturity", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetYieldBps", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetDocHash", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetState", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetPricePerUnit", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "getAvailableUnits", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetVerifier", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetVerifiedAt", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetCreatedAt", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetExternalRef", args: [BigInt(i)] }),
           ]);
 
           if ((issuer as string).toLowerCase() === address.toLowerCase()) {

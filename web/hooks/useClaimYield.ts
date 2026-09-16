@@ -1,7 +1,7 @@
 "use client";
 
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
 
 export function useClaimYield() {
   const { writeContractAsync, data: txHash, isPending, isError: isWriteError, error: writeError, reset } = useWriteContract();
@@ -12,8 +12,8 @@ export function useClaimYield() {
 
   const claimYield = (assetId: number) =>
     writeContractAsync({
-      address: ASSETFLOW_ADDRESS,
-      abi: ASSETFLOW_ABI,
+      address: ASETRA_ADDRESS,
+      abi: ASETRA_ABI,
       functionName: "claimYield",
       args: [BigInt(assetId)],
     });

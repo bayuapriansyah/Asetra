@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
 import { formatUSD, shortenAddress } from "@/lib/utils/format";
 import { Wallet, RefreshCw, ExternalLink, Activity as ActivityIcon, CheckCircle2, FileText, ShieldCheck, Coins, ClipboardList, DollarSign, Tag, XCircle, ArrowRightLeft, Lock, Unlock, CreditCard, Gem, Clock, Flag, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { ActivitySkeleton } from "@/components/skeleton/PageSkeletons";
@@ -139,8 +139,8 @@ export default function ActivityPage() {
       const eventPromises = EVENT_NAMES.map(async (eventName) => {
         try {
           const logs = await publicClient.getLogs({
-            address: ASSETFLOW_ADDRESS,
-            event: ASSETFLOW_ABI.find((item) => item.type === "event" && item.name === eventName) as any,
+            address: ASETRA_ADDRESS,
+            event: ASETRA_ABI.find((item) => item.type === "event" && item.name === eventName) as any,
             fromBlock,
             toBlock: "latest",
           });
@@ -221,7 +221,7 @@ export default function ActivityPage() {
             </span>
           </div>
           <p className="mt-1 text-sm text-slate-400">
-            Real-time event stream from AssetFlow protocol smart contracts on Bohr Chain.
+            Real-time event stream from Asetra protocol smart contracts on Bohr Chain.
           </p>
         </div>
 
@@ -261,7 +261,7 @@ export default function ActivityPage() {
             No events detected in the recent block range. Create an asset or perform a transaction to generate activity.
           </p>
           <a
-            href={`${explorerBase}/address/${ASSETFLOW_ADDRESS}`}
+            href={`${explorerBase}/address/${ASETRA_ADDRESS}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-2 text-xs font-mono text-cyan-400 hover:text-cyan-300 transition-colors"

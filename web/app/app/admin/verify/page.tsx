@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
 import { useVerifyAsset } from "@/hooks/useLifecycle";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
 import { TxProgress } from "@/components/ui/TxProgress";
@@ -36,8 +36,8 @@ export default function AdminVerifyPage() {
     setIsLoading(true);
     try {
       const countResult = await publicClient.readContract({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "getAssetCount",
       });
       const total = Number(countResult);
@@ -47,38 +47,38 @@ export default function AdminVerifyPage() {
         try {
           const [state, name, counterparty, faceValue, docHash, createdAt] = await Promise.all([
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetState",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetName",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetCounterparty",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetFaceValue",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetDocHash",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetCreatedAt",
               args: [BigInt(i)],
             }),

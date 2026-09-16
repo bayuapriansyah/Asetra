@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { usePublicClient } from "wagmi";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
 import { formatUSD, formatBps, daysUntil, normalizePrice } from "@/lib/utils/format";
 import { ASSET_STATE_LABELS, AssetState } from "@/types/asset";
 import Link from "next/link";
@@ -39,7 +39,7 @@ export function MarketplacePreview() {
     if (!publicClient) return;
     try {
       const countResult = await publicClient.readContract({
-        address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "getAssetCount",
+        address: ASETRA_ADDRESS, abi: ASETRA_ABI,         functionName: "getAssetCount",
       });
       const total = Math.min(Number(countResult), 3);
       if (total === 0) { setIsLoading(false); return; }
@@ -48,14 +48,14 @@ export function MarketplacePreview() {
       for (let i = 0; i < total; i++) {
         try {
           const [name, assetType, faceValue, yieldBps, maturity, state, fundedAmount, fundingTarget] = await Promise.all([
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetName", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetType", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetFaceValue", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetYieldBps", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetMaturity", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetState", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetFundedAmount", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASSETFLOW_ADDRESS, abi: ASSETFLOW_ABI, functionName: "assetFundingTarget", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetName", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetType", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFaceValue", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetYieldBps", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetMaturity", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetState", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFundedAmount", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFundingTarget", args: [BigInt(i)] }),
           ]);
           const ft = fundingTarget as bigint;
           const fa = fundedAmount as bigint;

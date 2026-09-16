@@ -1,7 +1,7 @@
 "use client";
 
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
 
 function useLifecycleAction() {
   const { writeContractAsync, data: txHash, isPending, isError: isWriteError, error: writeError, reset } = useWriteContract();
@@ -17,8 +17,8 @@ export function useVerifyAsset() {
   const hook = useLifecycleAction();
   const verify = (assetId: number) =>
     hook.writeContractAsync({
-      address: ASSETFLOW_ADDRESS,
-      abi: ASSETFLOW_ABI,
+      address: ASETRA_ADDRESS,
+      abi: ASETRA_ABI,
       functionName: "verifyAsset",
       args: [BigInt(assetId)],
     });
@@ -29,8 +29,8 @@ export function useTokenizeAsset() {
   const hook = useLifecycleAction();
   const tokenize = (assetId: number, tokenSupply: bigint) =>
     hook.writeContractAsync({
-      address: ASSETFLOW_ADDRESS,
-      abi: ASSETFLOW_ABI,
+      address: ASETRA_ADDRESS,
+      abi: ASETRA_ABI,
       functionName: "tokenizeAsset",
       args: [BigInt(assetId), tokenSupply],
     });
@@ -41,8 +41,8 @@ export function useListAsset() {
   const hook = useLifecycleAction();
   const list = (assetId: number) =>
     hook.writeContractAsync({
-      address: ASSETFLOW_ADDRESS,
-      abi: ASSETFLOW_ABI,
+      address: ASETRA_ADDRESS,
+      abi: ASETRA_ABI,
       functionName: "listAsset",
       args: [BigInt(assetId)],
     });
@@ -53,8 +53,8 @@ export function useMatureAsset() {
   const hook = useLifecycleAction();
   const mature = (assetId: number) =>
     hook.writeContractAsync({
-      address: ASSETFLOW_ADDRESS,
-      abi: ASSETFLOW_ABI,
+      address: ASETRA_ADDRESS,
+      abi: ASETRA_ABI,
       functionName: "matureAsset",
       args: [BigInt(assetId)],
     });
@@ -65,8 +65,8 @@ export function useSettleAsset() {
   const hook = useLifecycleAction();
   const settle = (assetId: number) =>
     hook.writeContractAsync({
-      address: ASSETFLOW_ADDRESS,
-      abi: ASSETFLOW_ABI,
+      address: ASETRA_ADDRESS,
+      abi: ASETRA_ABI,
       functionName: "settleAsset",
       args: [BigInt(assetId)],
     });

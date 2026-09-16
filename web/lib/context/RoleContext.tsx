@@ -22,7 +22,7 @@ interface RoleContextValue {
 
 const RoleContext = createContext<RoleContextValue | null>(null);
 
-const STORAGE_KEY = "assetflow-role";
+const STORAGE_KEY = "asetra-role";
 
 const ROLE_LABELS: Record<Role, string> = {
   admin: "Admin",

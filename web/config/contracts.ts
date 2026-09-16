@@ -1,4 +1,5 @@
-export const ASSETFLOW_ADDRESS = process.env.NEXT_PUBLIC_ASSETFLOW_ADDRESS as `0x${string}`;
+export const ASETRA_ADDRESS = (process.env.NEXT_PUBLIC_ASETRA_ADDRESS || "0x954Eac94dAB99fA988918bed1ab2E63ff2E41E2a") as `0x${string}`;
+export const ASSETFLOW_ADDRESS = ASETRA_ADDRESS;
 export const TUSDT_ADDRESS = process.env.NEXT_PUBLIC_TUSDT_ADDRESS as `0x${string}`;
 
 export const TUSDT_ABI = [
@@ -10,7 +11,7 @@ export const TUSDT_ABI = [
   { type: "function", name: "name", inputs: [], outputs: [{ name: "", type: "string" }], stateMutability: "view" },
 ] as const;
 
-export const ASSETFLOW_ABI = [
+export const ASETRA_ABI = [
   { type: "function", name: "admin", inputs: [], outputs: [{ name: "", type: "address" }], stateMutability: "view" },
   { type: "function", name: "tUSDT", inputs: [], outputs: [{ name: "", type: "address" }], stateMutability: "view" },
   { type: "function", name: "nextAssetId", inputs: [], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
@@ -143,3 +144,5 @@ export const ASSETFLOW_ABI = [
     { name: "principal", type: "uint256", indexed: false }, { name: "yield_", type: "uint256", indexed: false }
   ]},
 ] as const;
+
+export const ASSETFLOW_ABI = ASETRA_ABI;

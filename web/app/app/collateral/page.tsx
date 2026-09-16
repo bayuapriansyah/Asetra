@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
 import { formatUSD } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
@@ -60,8 +60,8 @@ export default function CollateralPage() {
     setIsLoading(true);
     try {
       const countResult = await publicClient.readContract({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "getAssetCount",
       });
       const total = Number(countResult);
@@ -71,32 +71,32 @@ export default function CollateralPage() {
         try {
           const [pos, name, state, faceValue, tokenSupply] = await Promise.all([
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "getPosition",
               args: [BigInt(i), address],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetName",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetState",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetFaceValue",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetTokenSupply",
               args: [BigInt(i)],
             }),
@@ -148,8 +148,8 @@ export default function CollateralPage() {
     setTxError(null);
     try {
       await writeContractAsync({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "depositCollateral",
         args: [BigInt(selectedAsset), BigInt(depositAmount)],
       });
@@ -163,8 +163,8 @@ export default function CollateralPage() {
     setTxError(null);
     try {
       await writeContractAsync({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "withdrawCollateral",
         args: [BigInt(selectedAsset), BigInt(withdrawAmount)],
       });

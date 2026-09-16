@@ -1,7 +1,7 @@
 "use client";
 
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
 import { keccak256, toBytes } from "viem";
 
 interface CreateAssetParams {
@@ -28,8 +28,8 @@ export function useCreateAsset() {
       : keccak256(toBytes(`${params.name}-${params.faceValue}-${Date.now()}`));
 
     return writeContractAsync({
-      address: ASSETFLOW_ADDRESS,
-      abi: ASSETFLOW_ABI,
+      address: ASETRA_ADDRESS,
+      abi: ASETRA_ABI,
       functionName: "createAsset",
       args: [
         params.assetType,

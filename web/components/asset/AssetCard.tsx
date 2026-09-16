@@ -37,10 +37,10 @@ export function AssetCard({ asset }: AssetCardProps) {
         <div>
           <div className="mb-3 flex items-start justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="rounded-md bg-slate-800/80 border border-white/[0.08] px-1.5 py-0.5 text-[10px] font-mono text-cyan-400">
+              <span className="rounded-md bg-[#16181b] border border-white/[0.08] px-1.5 py-0.5 text-[10px] font-mono text-cyan-400">
                 #{asset.id.toString()}
               </span>
-              <span className="rounded-md bg-white/[0.05] border border-white/[0.06] px-2 py-0.5 text-[11px] font-medium text-slate-300">
+              <span className="rounded-md bg-white/[0.05] border border-white/[0.06] px-2 py-0.5 text-[11px] font-medium text-zinc-300">
                 {asset.assetType}
               </span>
             </div>
@@ -57,21 +57,21 @@ export function AssetCard({ asset }: AssetCardProps) {
           </h3>
 
           {/* Key Financials */}
-          <div className="my-4 grid grid-cols-3 gap-3 rounded-xl border border-white/[0.06] bg-slate-950/50 p-3">
+          <div className="my-4 grid grid-cols-3 gap-3 rounded-xl border border-white/[0.06] bg-[#000000]/60 p-3">
             <div>
-              <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500">Face Value</div>
+              <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-500">Face Value</div>
               <div className="mt-0.5 text-base font-bold font-mono text-white">
                 {formatUSD(asset.faceValue)}
               </div>
             </div>
             <div className="border-l border-white/[0.06] pl-3">
-              <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500">Price</div>
+              <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-500">Price</div>
               <div className="mt-0.5 text-base font-bold font-mono text-cyan-300">
                 {formatUSD(normalizePrice(asset.pricePerUnit))}
               </div>
             </div>
             <div className="border-l border-white/[0.06] pl-3">
-              <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500">Yield</div>
+              <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-500">Yield</div>
               <div className="mt-0.5 text-base font-bold font-mono text-emerald-400 flex items-center gap-1">
                 <TrendingUp className="h-3.5 w-3.5" />
                 <span>{formatBps(asset.expectedYieldBps)}</span>
@@ -82,10 +82,10 @@ export function AssetCard({ asset }: AssetCardProps) {
           {/* Funding Progress Bar */}
           <div className="mb-4">
             <div className="mb-1.5 flex justify-between text-xs font-mono">
-              <span className="text-slate-400">Funded</span>
-              <span className="font-semibold text-slate-200">{fundedPercent.toFixed(1)}%</span>
+              <span className="text-zinc-400">Funded</span>
+              <span className="font-semibold text-zinc-200">{fundedPercent.toFixed(1)}%</span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-slate-800/80">
+            <div className="h-1.5 overflow-hidden rounded-full bg-black/60">
               <div
                 className="h-full rounded-full bg-cyan-400 transition-all duration-500"
                 style={{ width: `${Math.min(fundedPercent, 100)}%` }}

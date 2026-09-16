@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
 import { formatUSD, shortenAddress, normalizePrice, calcTokenCost } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
@@ -64,8 +64,8 @@ export default function TradingPage() {
     setIsLoading(true);
     try {
       const countResult = await publicClient.readContract({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "getAssetCount",
       });
       const total = Number(countResult);
@@ -75,8 +75,8 @@ export default function TradingPage() {
         for (let orderId = 1; orderId <= 100; orderId++) {
           try {
             const raw = (await publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "getSellOrder",
               args: [BigInt(orderId)],
             })) as unknown as readonly [bigint, bigint, `0x${string}`, bigint, bigint, boolean, bigint];
@@ -84,8 +84,8 @@ export default function TradingPage() {
               let assetName = "Unknown";
               try {
                 const name = await publicClient.readContract({
-                  address: ASSETFLOW_ADDRESS,
-                  abi: ASSETFLOW_ABI,
+                  address: ASETRA_ADDRESS,
+                  abi: ASETRA_ABI,
                   functionName: "assetName",
                   args: [raw[1]],
                 });
@@ -138,8 +138,8 @@ export default function TradingPage() {
     try {
       if (publicClient) {
         const stateResult = await publicClient.readContract({
-          address: ASSETFLOW_ADDRESS,
-          abi: ASSETFLOW_ABI,
+          address: ASETRA_ADDRESS,
+          abi: ASETRA_ABI,
           functionName: "assetState",
           args: [BigInt(createAssetId)],
         });
@@ -150,8 +150,8 @@ export default function TradingPage() {
         }
       }
       await writeContractAsync({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "createSellOrder",
         args: [BigInt(createAssetId), BigInt(createAmount), BigInt(createPrice)],
       });
@@ -165,7 +165,7 @@ export default function TradingPage() {
 
   const handleBuy = async (orderId: number, units: string) => {
     const order = orders.find((o) => o.orderId === BigInt(orderId));
-    if (!order || !units) return;
+    if (!order || !units || !publicClient) return;
     const totalCost = calcTokenCost(order.pricePerUnit, parseInt(units));
     setTxError(null);
     try {
@@ -174,7 +174,7 @@ export default function TradingPage() {
         address: TUSDT_ADDRESS,
         abi: TUSDT_ABI,
         functionName: "approve",
-        args: [ASSETFLOW_ADDRESS, totalCost],
+        args: [ASETRA_ADDRESS, totalCost],
       });
 
       // Step 2: Wait for approve to be mined
@@ -185,8 +185,8 @@ export default function TradingPage() {
 
       // Step 3: Execute trade (allowance is now set)
       await writeContractAsync({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "executeTrade",
         args: [BigInt(orderId), BigInt(units)],
       });
@@ -199,8 +199,8 @@ export default function TradingPage() {
     setTxError(null);
     try {
       await writeContractAsync({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "cancelSellOrder",
         args: [BigInt(orderId)],
       });

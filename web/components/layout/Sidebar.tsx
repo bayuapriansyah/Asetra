@@ -94,7 +94,7 @@ export function Sidebar() {
   const RoleIcon = role ? ROLE_ICONS[role] : null;
 
   return (
-    <aside className="fixed left-0 top-16 z-40 hidden h-[calc(100vh-4rem)] w-64 border-r border-white/[0.08] bg-[#0a0e17]/95 backdrop-blur-xl lg:block">
+    <aside className="fixed left-0 top-16 z-40 hidden h-[calc(100vh-4rem)] w-64 border-r border-white/[0.08] bg-[#111214] lg:block">
       <div className="flex h-full flex-col justify-between overflow-y-auto p-4">
         <div className="space-y-6">
           {/* Role Badge */}
@@ -160,11 +160,11 @@ export function Sidebar() {
 
         {/* Bottom Network & Contract Status Card */}
         <div className="pt-4 border-t border-white/[0.06]">
-          <div className="rounded-xl border border-white/[0.08] bg-slate-900/60 p-3 text-xs">
+          <div className="rounded-xl border border-white/[0.08] bg-[#16181b] p-3 text-xs">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5 font-semibold text-slate-200">
                 <ShieldCheck className="h-3.5 w-3.5 text-cyan-400" />
-                <span>AssetFlow Core</span>
+                <span>Asetra Core</span>
               </div>
               <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-mono font-medium text-emerald-400">
                 Verified

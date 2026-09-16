@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
 import { RoleGuard } from "@/components/role/RoleGuard";
 import { formatUSD, timestampToDate } from "@/lib/utils/format";
 import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
@@ -64,8 +64,8 @@ export default function PortfolioPage() {
     if (!publicClient || !address) return;
     try {
       const countResult = await publicClient.readContract({
-        address: ASSETFLOW_ADDRESS,
-        abi: ASSETFLOW_ABI,
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
         functionName: "getAssetCount",
       });
       const total = Number(countResult);
@@ -75,50 +75,50 @@ export default function PortfolioPage() {
         try {
           const [pos, name, assetType, state, borrowed, liveYield, faceValue, tokenSupply] = await Promise.all([
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "getPosition",
               args: [BigInt(i), address],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetName",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetType",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetState",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "getBorrowedAmount",
               args: [BigInt(i), address],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "calculateYield",
               args: [BigInt(i), address],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetFaceValue",
               args: [BigInt(i)],
             }),
             publicClient.readContract({
-              address: ASSETFLOW_ADDRESS,
-              abi: ASSETFLOW_ABI,
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
               functionName: "assetTokenSupply",
               args: [BigInt(i)],
             }),

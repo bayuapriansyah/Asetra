@@ -1,7 +1,7 @@
 "use client";
 
 import { useWriteContract, useWaitForTransactionReceipt, usePublicClient } from "wagmi";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, ASETRA_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
 
 export function useBuyTokens() {
   const { writeContractAsync, data: txHash, isPending, isError: isWriteError, error: writeError } = useWriteContract();
@@ -19,7 +19,7 @@ export function useBuyTokens() {
       address: TUSDT_ADDRESS,
       abi: TUSDT_ABI,
       functionName: "approve",
-      args: [ASSETFLOW_ADDRESS, totalCost],
+      args: [ASETRA_ADDRESS, totalCost],
     });
 
     // Step 2: Wait for approve to be mined
@@ -30,8 +30,8 @@ export function useBuyTokens() {
 
     // Step 3: Call buyTokens (allowance is now set)
     return writeContractAsync({
-      address: ASSETFLOW_ADDRESS,
-      abi: ASSETFLOW_ABI,
+      address: ASETRA_ADDRESS,
+      abi: ASETRA_ABI,
       functionName: "buyTokens",
       args: [BigInt(assetId), BigInt(units)],
     });

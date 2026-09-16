@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {AssetFlow} from "../src/AssetFlow.sol";
-import {IERC20} from "../src/AssetFlow.sol";
+import {Asetra} from "../src/Asetra.sol";
+import {IERC20} from "../src/Asetra.sol";
 
 contract MockUSDT is IERC20 {
     string public name = "Tether USD";
@@ -44,8 +44,8 @@ contract MockUSDT is IERC20 {
     }
 }
 
-contract AssetFlowTest is Test {
-    AssetFlow public assetFlow;
+contract AsetraTest is Test {
+    Asetra public asetra;
     MockUSDT public usdt;
 
     address public admin = address(this);
@@ -61,7 +61,7 @@ contract AssetFlowTest is Test {
 
     function setUp() public {
         usdt = new MockUSDT();
-        assetFlow = new AssetFlow(address(usdt));
+        asetra = new Asetra(address(usdt));
         maturity = block.timestamp + 90 days;
 
         usdt.mint(investor, 1_000_000e6);
@@ -70,7 +70,7 @@ contract AssetFlowTest is Test {
 
     function _createAsset() internal returns (uint256) {
         vm.prank(issuer);
-        return assetFlow.createAsset(
+        return asetra.createAsset(
             "Invoice",
             "INV-2048",
             "INV-2048-REF",
@@ -83,49 +83,49 @@ contract AssetFlowTest is Test {
     }
 
     function _verifyAsset(uint256 assetId) internal {
-        assetFlow.verifyAsset(assetId);
+        asetra.verifyAsset(assetId);
     }
 
     function _tokenizeAsset(uint256 assetId) internal {
         vm.prank(issuer);
-        assetFlow.tokenizeAsset(assetId, TOKEN_SUPPLY);
+        asetra.tokenizeAsset(assetId, TOKEN_SUPPLY);
     }
 
     function _listAsset(uint256 assetId) internal {
         vm.prank(issuer);
-        assetFlow.listAsset(assetId);
+        asetra.listAsset(assetId);
     }
 
     function _invest(uint256 assetId, uint256 units) internal {
-        uint256 assetPrice = assetFlow.assetPricePerUnit(assetId);
+        uint256 assetPrice = asetra.assetPricePerUnit(assetId);
         uint256 cost = units * assetPrice;
         vm.prank(investor);
-        usdt.approve(address(assetFlow), cost);
+        usdt.approve(address(asetra), cost);
         vm.prank(investor);
-        assetFlow.buyTokens(assetId, units);
+        asetra.buyTokens(assetId, units);
     }
 
     function test_CreateAsset() public {
         uint256 assetId = _createAsset();
-        assertEq(assetFlow.assetName(assetId), "INV-2048");
-        assertEq(assetFlow.assetIssuer(assetId), issuer);
-        assertEq(assetFlow.assetFaceValue(assetId), FACE_VALUE);
-        assertEq(assetFlow.assetState(assetId), uint8(AssetFlow.AssetState.CREATED));
+        assertEq(asetra.assetName(assetId), "INV-2048");
+        assertEq(asetra.assetIssuer(assetId), issuer);
+        assertEq(asetra.assetFaceValue(assetId), FACE_VALUE);
+        assertEq(asetra.assetState(assetId), uint8(Asetra.AssetState.CREATED));
     }
 
     function test_VerifyAsset() public {
         uint256 assetId = _createAsset();
         _verifyAsset(assetId);
-        assertEq(assetFlow.assetState(assetId), uint8(AssetFlow.AssetState.VERIFIED));
-        assertEq(assetFlow.assetVerifier(assetId), admin);
+        assertEq(asetra.assetState(assetId), uint8(Asetra.AssetState.VERIFIED));
+        assertEq(asetra.assetVerifier(assetId), admin);
     }
 
     function test_TokenizeAsset() public {
         uint256 assetId = _createAsset();
         _verifyAsset(assetId);
         _tokenizeAsset(assetId);
-        assertEq(assetFlow.assetState(assetId), uint8(AssetFlow.AssetState.TOKENIZED));
-        assertEq(assetFlow.assetTokenSupply(assetId), TOKEN_SUPPLY);
+        assertEq(asetra.assetState(assetId), uint8(Asetra.AssetState.TOKENIZED));
+        assertEq(asetra.assetTokenSupply(assetId), TOKEN_SUPPLY);
     }
 
     function test_ListAsset() public {
@@ -133,7 +133,7 @@ contract AssetFlowTest is Test {
         _verifyAsset(assetId);
         _tokenizeAsset(assetId);
         _listAsset(assetId);
-        assertEq(assetFlow.assetState(assetId), uint8(AssetFlow.AssetState.LISTED));
+        assertEq(asetra.assetState(assetId), uint8(Asetra.AssetState.LISTED));
     }
 
     function test_BuyTokens() public {
@@ -143,7 +143,7 @@ contract AssetFlowTest is Test {
         _listAsset(assetId);
         _invest(assetId, 1000);
 
-        (uint256 amt, , , , , , bool active) = assetFlow.getPosition(assetId, investor);
+        (uint256 amt, , , , , , bool active) = asetra.getPosition(assetId, investor);
         assertEq(amt, 1000);
         assertTrue(active);
     }
@@ -154,56 +154,56 @@ contract AssetFlowTest is Test {
         _tokenizeAsset(assetId);
         _listAsset(assetId);
         _invest(assetId, TOKEN_SUPPLY);
-        assertEq(assetFlow.assetState(assetId), uint8(AssetFlow.AssetState.ACTIVE));
+        assertEq(asetra.assetState(assetId), uint8(Asetra.AssetState.ACTIVE));
     }
 
     function test_Revert_CannotVerifyWithoutAsset() public {
-        vm.expectRevert(AssetFlow.AssetNotFound.selector);
-        assetFlow.verifyAsset(999);
+        vm.expectRevert(Asetra.AssetNotFound.selector);
+        asetra.verifyAsset(999);
     }
 
     function test_Revert_CannotVerifyTwice() public {
         uint256 assetId = _createAsset();
         _verifyAsset(assetId);
-        vm.expectRevert(AssetFlow.InvalidStateTransition.selector);
-        assetFlow.verifyAsset(assetId);
+        vm.expectRevert(Asetra.InvalidStateTransition.selector);
+        asetra.verifyAsset(assetId);
     }
 
     function test_Revert_CannotTokenizeUnverified() public {
         uint256 assetId = _createAsset();
         vm.prank(issuer);
-        vm.expectRevert(AssetFlow.InvalidStateTransition.selector);
-        assetFlow.tokenizeAsset(assetId, TOKEN_SUPPLY);
+        vm.expectRevert(Asetra.InvalidStateTransition.selector);
+        asetra.tokenizeAsset(assetId, TOKEN_SUPPLY);
     }
 
     function test_Revert_CannotListUnTokenized() public {
         uint256 assetId = _createAsset();
         _verifyAsset(assetId);
         vm.prank(issuer);
-        vm.expectRevert(AssetFlow.InvalidStateTransition.selector);
-        assetFlow.listAsset(assetId);
+        vm.expectRevert(Asetra.InvalidStateTransition.selector);
+        asetra.listAsset(assetId);
     }
 
     function test_Revert_OnlyIssuerCanTokenize() public {
         uint256 assetId = _createAsset();
         _verifyAsset(assetId);
-        vm.expectRevert(AssetFlow.Unauthorized.selector);
-        assetFlow.tokenizeAsset(assetId, TOKEN_SUPPLY);
+        vm.expectRevert(Asetra.Unauthorized.selector);
+        asetra.tokenizeAsset(assetId, TOKEN_SUPPLY);
     }
 
     function test_Revert_OnlyIssuerCanList() public {
         uint256 assetId = _createAsset();
         _verifyAsset(assetId);
         _tokenizeAsset(assetId);
-        vm.expectRevert(AssetFlow.Unauthorized.selector);
-        assetFlow.listAsset(assetId);
+        vm.expectRevert(Asetra.Unauthorized.selector);
+        asetra.listAsset(assetId);
     }
 
     function test_Revert_UnauthorizedVerifier() public {
         uint256 assetId = _createAsset();
         vm.prank(investor);
-        vm.expectRevert(AssetFlow.Unauthorized.selector);
-        assetFlow.verifyAsset(assetId);
+        vm.expectRevert(Asetra.Unauthorized.selector);
+        asetra.verifyAsset(assetId);
     }
 
     function test_CreateSellOrder() public {
@@ -214,8 +214,8 @@ contract AssetFlowTest is Test {
         _invest(assetId, 1000);
 
         vm.prank(investor);
-        uint256 orderId = assetFlow.createSellOrder(assetId, 500, 0.98e6);
-        (, , , uint256 amt, , bool isActive, ) = assetFlow.getSellOrder(orderId);
+        uint256 orderId = asetra.createSellOrder(assetId, 500, 0.98e6);
+        (, , , uint256 amt, , bool isActive, ) = asetra.getSellOrder(orderId);
         assertEq(amt, 500);
         assertTrue(isActive);
     }
@@ -228,11 +228,11 @@ contract AssetFlowTest is Test {
         _invest(assetId, 1000);
 
         vm.prank(investor);
-        uint256 orderId = assetFlow.createSellOrder(assetId, 500, 0.98e6);
+        uint256 orderId = asetra.createSellOrder(assetId, 500, 0.98e6);
         vm.prank(investor);
-        assetFlow.cancelSellOrder(orderId);
+        asetra.cancelSellOrder(orderId);
 
-        (, , , , , bool isActive, ) = assetFlow.getSellOrder(orderId);
+        (, , , , , bool isActive, ) = asetra.getSellOrder(orderId);
         assertFalse(isActive);
     }
 
@@ -244,16 +244,16 @@ contract AssetFlowTest is Test {
         _invest(assetId, 1000);
 
         vm.prank(investor);
-        uint256 orderId = assetFlow.createSellOrder(assetId, 500, 0.94e6);
+        uint256 orderId = asetra.createSellOrder(assetId, 500, 0.94e6);
 
         uint256 cost = 500 * 0.94e6;
         usdt.mint(investor2, cost);
         vm.prank(investor2);
-        usdt.approve(address(assetFlow), cost);
+        usdt.approve(address(asetra), cost);
         vm.prank(investor2);
-        assetFlow.executeTrade(orderId, 500);
+        asetra.executeTrade(orderId, 500);
 
-        (uint256 amt, , , , , , ) = assetFlow.getPosition(assetId, investor2);
+        (uint256 amt, , , , , , ) = asetra.getPosition(assetId, investor2);
         assertEq(amt, 500);
     }
 
@@ -265,9 +265,9 @@ contract AssetFlowTest is Test {
         _invest(assetId, 1000);
 
         vm.prank(investor);
-        assetFlow.depositCollateral(assetId, 500);
+        asetra.depositCollateral(assetId, 500);
 
-        (, , , , , uint256 collateralAmt, ) = assetFlow.getPosition(assetId, investor);
+        (, , , , , uint256 collateralAmt, ) = asetra.getPosition(assetId, investor);
         assertEq(collateralAmt, 500);
     }
 
@@ -279,11 +279,11 @@ contract AssetFlowTest is Test {
         _invest(assetId, 1000);
 
         vm.prank(investor);
-        assetFlow.depositCollateral(assetId, 500);
+        asetra.depositCollateral(assetId, 500);
         vm.prank(investor);
-        assetFlow.withdrawCollateral(assetId, 200);
+        asetra.withdrawCollateral(assetId, 200);
 
-        (, , , , , uint256 collateralAmt, ) = assetFlow.getPosition(assetId, investor);
+        (, , , , , uint256 collateralAmt, ) = asetra.getPosition(assetId, investor);
         assertEq(collateralAmt, 300);
     }
 
@@ -295,13 +295,13 @@ contract AssetFlowTest is Test {
         _invest(assetId, TOKEN_SUPPLY);
 
         vm.prank(investor);
-        assetFlow.depositCollateral(assetId, 100);
+        asetra.depositCollateral(assetId, 100);
         vm.prank(investor);
-        assetFlow.borrow(assetId, 57e6);
+        asetra.borrow(assetId, 57e6);
 
         vm.prank(investor);
-        vm.expectRevert(AssetFlow.CollateralWithdrawalViolatesDebt.selector);
-        assetFlow.withdrawCollateral(assetId, 100);
+        vm.expectRevert(Asetra.CollateralWithdrawalViolatesDebt.selector);
+        asetra.withdrawCollateral(assetId, 100);
     }
 
     function test_Borrow() public {
@@ -312,13 +312,13 @@ contract AssetFlowTest is Test {
         _invest(assetId, TOKEN_SUPPLY);
 
         vm.prank(investor);
-        assetFlow.depositCollateral(assetId, 100);
+        asetra.depositCollateral(assetId, 100);
 
         uint256 balBefore = usdt.balanceOf(investor);
         vm.prank(investor);
-        assetFlow.borrow(assetId, 0.05e6);
+        asetra.borrow(assetId, 0.05e6);
 
-        assertEq(assetFlow.getBorrowedAmount(assetId, investor), 0.05e6);
+        assertEq(asetra.getBorrowedAmount(assetId, investor), 0.05e6);
         assertEq(usdt.balanceOf(investor) - balBefore, 0.05e6);
     }
 
@@ -330,16 +330,16 @@ contract AssetFlowTest is Test {
         _invest(assetId, TOKEN_SUPPLY);
 
         vm.prank(investor);
-        assetFlow.depositCollateral(assetId, 100);
+        asetra.depositCollateral(assetId, 100);
         vm.prank(investor);
-        assetFlow.borrow(assetId, 0.05e6);
+        asetra.borrow(assetId, 0.05e6);
 
         vm.prank(investor);
-        usdt.approve(address(assetFlow), 0.05e6);
+        usdt.approve(address(asetra), 0.05e6);
         vm.prank(investor);
-        assetFlow.repay(assetId, 0.05e6);
+        asetra.repay(assetId, 0.05e6);
 
-        assertEq(assetFlow.getBorrowedAmount(assetId, investor), 0);
+        assertEq(asetra.getBorrowedAmount(assetId, investor), 0);
     }
 
     function test_GetHealth() public {
@@ -350,9 +350,9 @@ contract AssetFlowTest is Test {
         _invest(assetId, TOKEN_SUPPLY);
 
         vm.prank(investor);
-        assetFlow.depositCollateral(assetId, 100);
+        asetra.depositCollateral(assetId, 100);
 
-        (, bool healthy) = assetFlow.getHealth(assetId, investor);
+        (, bool healthy) = asetra.getHealth(assetId, investor);
         assertTrue(healthy);
     }
 
@@ -364,7 +364,7 @@ contract AssetFlowTest is Test {
         _invest(assetId, TOKEN_SUPPLY);
 
         vm.warp(block.timestamp + 30 days);
-        uint256 yield_ = assetFlow.calculateYield(assetId, investor);
+        uint256 yield_ = asetra.calculateYield(assetId, investor);
         assertTrue(yield_ > 0);
     }
 
@@ -376,7 +376,7 @@ contract AssetFlowTest is Test {
         _invest(assetId, TOKEN_SUPPLY);
 
         vm.warp(block.timestamp + 30 days);
-        uint256 score = assetFlow.getHoldingScore(assetId, investor);
+        uint256 score = asetra.getHoldingScore(assetId, investor);
         assertEq(score, TOKEN_SUPPLY * 30);
     }
 
@@ -388,8 +388,8 @@ contract AssetFlowTest is Test {
         _invest(assetId, TOKEN_SUPPLY);
 
         vm.warp(maturity);
-        assetFlow.matureAsset(assetId);
-        assertEq(assetFlow.assetState(assetId), uint8(AssetFlow.AssetState.MATURED));
+        asetra.matureAsset(assetId);
+        assertEq(asetra.assetState(assetId), uint8(Asetra.AssetState.MATURED));
     }
 
     function test_Revert_CannotMatureEarly() public {
@@ -399,8 +399,8 @@ contract AssetFlowTest is Test {
         _listAsset(assetId);
         _invest(assetId, TOKEN_SUPPLY);
 
-        vm.expectRevert(AssetFlow.MaturityNotReached.selector);
-        assetFlow.matureAsset(assetId);
+        vm.expectRevert(Asetra.MaturityNotReached.selector);
+        asetra.matureAsset(assetId);
     }
 
     function test_SettleAsset() public {
@@ -411,13 +411,13 @@ contract AssetFlowTest is Test {
         _invest(assetId, TOKEN_SUPPLY);
 
         vm.warp(maturity);
-        assetFlow.matureAsset(assetId);
+        asetra.matureAsset(assetId);
 
         vm.warp(block.timestamp + 1 days);
         vm.prank(investor);
-        assetFlow.settleAsset(assetId);
+        asetra.settleAsset(assetId);
 
-        assertEq(assetFlow.assetState(assetId), uint8(AssetFlow.AssetState.SETTLED));
+        assertEq(asetra.assetState(assetId), uint8(Asetra.AssetState.SETTLED));
     }
 
     function test_Revert_CannotSettleBeforeMaturity() public {
@@ -428,7 +428,7 @@ contract AssetFlowTest is Test {
         _invest(assetId, TOKEN_SUPPLY);
 
         vm.prank(investor);
-        vm.expectRevert(AssetFlow.InvalidStateTransition.selector);
-        assetFlow.settleAsset(assetId);
+        vm.expectRevert(Asetra.InvalidStateTransition.selector);
+        asetra.settleAsset(assetId);
     }
 }

@@ -2,7 +2,7 @@
 
 import { useAccount, useBalance, useReadContract } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
+import { ASETRA_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
 import { Wallet, ExternalLink, Copy, Check, ShieldCheck, Globe, Cpu, Droplets } from "lucide-react";
 import { useState } from "react";
 
@@ -31,7 +31,7 @@ export default function SettingsPage() {
   };
 
   const copyContract = () => {
-    navigator.clipboard.writeText(ASSETFLOW_ADDRESS);
+    navigator.clipboard.writeText(ASETRA_ADDRESS);
     setCopiedContract(true);
     setTimeout(() => setCopiedContract(false), 2000);
   };
@@ -183,17 +183,17 @@ export default function SettingsPage() {
               <span>Smart Contract Deployment</span>
             </div>
             <span className="rounded-full bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 text-[10px] font-mono text-cyan-400">
-              AssetFlow Core
+              Asetra Core
             </span>
           </div>
 
           <div>
             <label className="text-xs font-mono uppercase tracking-wider text-slate-500">
-              AssetFlow.sol Address
+              Asetra.sol Address
             </label>
             <div className="mt-1.5 flex items-center gap-2">
               <code className="flex-1 rounded-xl border border-white/[0.08] bg-slate-950/80 px-3.5 py-2.5 text-xs font-mono text-slate-200 break-all">
-                {ASSETFLOW_ADDRESS}
+                {ASETRA_ADDRESS}
               </code>
               <button
                 onClick={copyContract}
@@ -207,7 +207,7 @@ export default function SettingsPage() {
                 )}
               </button>
               <a
-                href={`${explorerBase}/address/${ASSETFLOW_ADDRESS}`}
+                href={`${explorerBase}/address/${ASETRA_ADDRESS}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="View on Explorer"
