@@ -7,6 +7,8 @@ import { RevealCard } from "@/components/landing/RevealCard";
 import { LandingNavbar } from "@/components/landing/LandingNavbar";
 import ParticleNetwork from "@/components/landing/ParticleNetwork";
 import DigitalGlobe from "@/components/landing/DigitalGlobe";
+import { BackgroundPaths } from "@/components/landing/BackgroundPaths";
+import { SpotlightCard } from "spotlight-card";
 import {
   ArrowRight,
   Shield,
@@ -261,6 +263,9 @@ export default function LandingPage() {
             <div className="absolute inset-0 lp-grid [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)] opacity-50" />
         {/* <ParticleNetwork /> */}
         <DigitalGlobe />
+        <BackgroundPaths className="absolute inset-0">
+          <div className="w-full h-full" />
+        </BackgroundPaths>
         <div className="relative mx-auto flex max-w-7xl flex-col items-center text-center">
           <Reveal>
             <div className="inline-flex items-center gap-2.5 rounded-full border border-[rgba(100,160,255,0.15)] bg-[rgba(255,255,255,0.04)] px-4 py-1.5">
@@ -393,7 +398,12 @@ export default function LandingPage() {
           <div className="grid gap-6 md:grid-cols-2">
             {/* Issuer card */}
             <Reveal>
-              <div className="lp-card-gradient-blue lp-card-hover rounded-3xl p-8 sm:p-10 h-full flex flex-col">
+              <SpotlightCard
+                className="lp-card-gradient-blue rounded-3xl p-8 sm:p-10 h-full flex flex-col"
+                color="74, 158, 255"
+                opacity={0.15}
+                size={350}
+              >
                 <div className="flex items-center gap-2 mb-5">
                   <span className="h-2 w-2 rounded-full bg-[#4a9eff]" />
                   <span className="text-[11px] font-bold tracking-[0.18em] uppercase text-[#4a9eff]" style={{ fontFamily: "var(--font-display)" }}>
@@ -421,12 +431,17 @@ export default function LandingPage() {
                     Tokenize an Asset <ArrowRight className="h-4 w-4 text-[#0553DA]" />
                   </Link>
                 </div>
-              </div>
+              </SpotlightCard>
             </Reveal>
 
             {/* Investor card */}
             <Reveal delay={0.1}>
-              <div className="lp-card-gradient-gold lp-card-hover rounded-3xl p-8 sm:p-10 h-full flex flex-col">
+              <SpotlightCard
+                className="lp-card-gradient-gold rounded-3xl p-8 sm:p-10 h-full flex flex-col"
+                color="232, 196, 118"
+                opacity={0.15}
+                size={350}
+              >
                 <div className="flex items-center gap-2 mb-5">
                   <span className="h-2 w-2 rounded-full bg-[#e8c476]" />
                   <span className="text-[11px] font-bold tracking-[0.18em] uppercase text-[#e8c476]" style={{ fontFamily: "var(--font-display)" }}>
@@ -454,7 +469,7 @@ export default function LandingPage() {
                     Explore Marketplace <ArrowRight className="h-4 w-4 text-[#e8c476]" />
                   </Link>
                 </div>
-              </div>
+              </SpotlightCard>
             </Reveal>
           </div>
         </div>
