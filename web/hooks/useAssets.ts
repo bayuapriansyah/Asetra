@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { usePublicClient } from "wagmi";
-import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI } from "@/config/contracts";
+import { useAsetraAddress } from "@/hooks/useContractAddresses";
 import type { AssetData, AssetState } from "@/types/asset";
 
-async function fetchAsset(publicClient: NonNullable<ReturnType<typeof usePublicClient>>, id: number): Promise<AssetData> {
-  const c = ASETRA_ADDRESS;
+async function fetchAsset(publicClient: NonNullable<ReturnType<typeof usePublicClient>>, id: number, asetraAddress: `0x${string}`): Promise<AssetData> {
+  const c = asetraAddress;
   const a = ASETRA_ABI;
   const i = BigInt(id);
 
@@ -60,6 +61,7 @@ async function fetchAsset(publicClient: NonNullable<ReturnType<typeof usePublicC
 
 export function useAsset(id: number | null) {
   const publicClient = usePublicClient();
+  const ASETRA_ADDRESS = useAsetraAddress();
   const [asset, setAsset] = useState<AssetData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -75,7 +77,7 @@ export function useAsset(id: number | null) {
     (async () => {
       setIsLoading(true);
       try {
-        const result = await fetchAsset(publicClient, id);
+        const result = await fetchAsset(publicClient, id, ASETRA_ADDRESS);
         if (!cancelled) setAsset(result);
       } catch (e) {
         console.error("Failed to fetch asset:", e);
@@ -91,6 +93,7 @@ export function useAsset(id: number | null) {
 
 export function useAllAssets() {
   const publicClient = usePublicClient();
+  const ASETRA_ADDRESS = useAsetraAddress();
   const [assets, setAssets] = useState<AssetData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -108,7 +111,7 @@ export function useAllAssets() {
         return;
       }
       const results = await Promise.all(
-        Array.from({ length: total }, (_, i) => fetchAsset(publicClient, i))
+        Array.from({ length: total }, (_, i) => fetchAsset(publicClient, i, ASETRA_ADDRESS))
       );
       setAssets(results);
     } catch (e) {

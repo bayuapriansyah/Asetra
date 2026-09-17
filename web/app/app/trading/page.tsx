@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASETRA_ABI, ASETRA_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
-import { formatUSD, shortenAddress, normalizePrice, calcTokenCost } from "@/lib/utils/format";
+import { ASETRA_ABI, TUSDT_ABI } from "@/config/contracts";
+import { useAsetraAddress, useTusdtAddress } from "@/hooks/useContractAddresses";
+import { formatUSD, shortenAddress, calcTokenCost } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
 import { TxProgress } from "@/components/ui/TxProgress";
@@ -37,10 +38,21 @@ interface SellOrderData {
   assetName: string;
 }
 
+interface UserPosition {
+  assetId: number;
+  assetName: string;
+  amount: bigint;
+  availableUnits: bigint;
+  pricePerUnit: bigint;
+}
+
 export default function TradingPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
+  const ASETRA_ADDRESS = useAsetraAddress();
+  const TUSDT_ADDRESS = useTusdtAddress();
   const [orders, setOrders] = useState<SellOrderData[]>([]);
+  const [userPositions, setUserPositions] = useState<UserPosition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -50,6 +62,7 @@ export default function TradingPage() {
   const [createAssetId, setCreateAssetId] = useState("");
   const [createAmount, setCreateAmount] = useState("");
   const [createPrice, setCreatePrice] = useState("");
+  const [createPriceDisplay, setCreatePriceDisplay] = useState("");
   const [buyUnits, setBuyUnits] = useState<{ [key: string]: string }>({});
   const [txError, setTxError] = useState<string | null>(null);
 
@@ -60,7 +73,7 @@ export default function TradingPage() {
   const error = rcptError;
 
   const loadOrders = useCallback(async () => {
-    if (!publicClient) return;
+    if (!publicClient || !address) return;
     setIsLoading(true);
     try {
       const countResult = await publicClient.readContract({
@@ -70,43 +83,99 @@ export default function TradingPage() {
       });
       const total = Number(countResult);
       const results: SellOrderData[] = [];
+      const positions: UserPosition[] = [];
 
+      // Load user positions
       for (let i = 0; i < total; i++) {
-        for (let orderId = 1; orderId <= 100; orderId++) {
-          try {
-            const raw = (await publicClient.readContract({
+        try {
+          const [pos, name, state, faceValue, tokenSupply] = await Promise.all([
+            publicClient.readContract({
               address: ASETRA_ADDRESS,
               abi: ASETRA_ABI,
-              functionName: "getSellOrder",
-              args: [BigInt(orderId)],
-            })) as unknown as readonly [bigint, bigint, `0x${string}`, bigint, bigint, boolean, bigint];
-            if (raw[5] && raw[0] > BigInt(0)) {
-              let assetName = "Unknown";
-              try {
-                const name = await publicClient.readContract({
-                  address: ASETRA_ADDRESS,
-                  abi: ASETRA_ABI,
-                  functionName: "assetName",
-                  args: [raw[1]],
-                });
-                assetName = name as string;
-              } catch {
-                /* skip */
-              }
-              results.push({
-                orderId: raw[0],
-                assetId: raw[1],
-                seller: raw[2],
-                amount: raw[3],
-                pricePerUnit: raw[4],
-                active: raw[5],
-                createdAt: raw[6],
-                assetName,
-              });
-            }
-          } catch {
-            break;
+              functionName: "getPosition",
+              args: [BigInt(i), address],
+            }),
+            publicClient.readContract({
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
+              functionName: "assetName",
+              args: [BigInt(i)],
+            }),
+            publicClient.readContract({
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
+              functionName: "assetState",
+              args: [BigInt(i)],
+            }),
+            publicClient.readContract({
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
+              functionName: "assetFaceValue",
+              args: [BigInt(i)],
+            }),
+            publicClient.readContract({
+              address: ASETRA_ADDRESS,
+              abi: ASETRA_ABI,
+              functionName: "assetTokenSupply",
+              args: [BigInt(i)],
+            }),
+          ]);
+          const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, boolean];
+          // p[0]=amount, p[5]=collateralAmount, p[6]=active
+          if (p[6] && p[0] > BigInt(0)) {
+            const available = p[0] - p[5];
+            const pricePerUnit = tokenSupply as bigint > BigInt(0)
+              ? (faceValue as bigint) / (tokenSupply as bigint)
+              : BigInt(0);
+            positions.push({
+              assetId: i,
+              assetName: name as string,
+              amount: p[0],
+              availableUnits: available,
+              pricePerUnit,
+            });
           }
+        } catch {
+          /* skip */
+        }
+      }
+      setUserPositions(positions);
+
+      // Load sell orders
+      for (let orderId = 1; orderId <= 100; orderId++) {
+        try {
+          const raw = (await publicClient.readContract({
+            address: ASETRA_ADDRESS,
+            abi: ASETRA_ABI,
+            functionName: "getSellOrder",
+            args: [BigInt(orderId)],
+          })) as unknown as readonly [bigint, bigint, `0x${string}`, bigint, bigint, boolean, bigint];
+          if (raw[5] && raw[0] > BigInt(0)) {
+            let assetName = "Unknown";
+            try {
+              const name = await publicClient.readContract({
+                address: ASETRA_ADDRESS,
+                abi: ASETRA_ABI,
+                functionName: "assetName",
+                args: [raw[1]],
+              });
+              assetName = name as string;
+            } catch {
+              /* skip */
+            }
+            results.push({
+              orderId: raw[0],
+              assetId: raw[1],
+              seller: raw[2],
+              amount: raw[3],
+              pricePerUnit: raw[4],
+              active: raw[5],
+              createdAt: raw[6],
+              assetName,
+            });
+          }
+        } catch {
+          break;
         }
       }
       setOrders(results);
@@ -115,7 +184,7 @@ export default function TradingPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [publicClient]);
+  }, [publicClient, address]);
 
   useEffect(() => {
     loadOrders();
@@ -128,6 +197,7 @@ export default function TradingPage() {
       setCreateAssetId("");
       setCreateAmount("");
       setCreatePrice("");
+      setCreatePriceDisplay("");
       loadOrders();
     }
   }, [isSuccess, reset, loadOrders]);
@@ -135,6 +205,14 @@ export default function TradingPage() {
   const handleCreateOrder = async () => {
     if (!createAssetId || !createAmount || !createPrice) return;
     setTxError(null);
+
+    // Validate amount doesn't exceed available
+    const pos = userPositions.find((p) => p.assetId === Number(createAssetId));
+    if (pos && BigInt(createAmount) > pos.availableUnits) {
+      setTxError("Sell amount exceeds available token balance");
+      return;
+    }
+
     try {
       if (publicClient) {
         const stateResult = await publicClient.readContract({
@@ -158,6 +236,7 @@ export default function TradingPage() {
       setCreateAssetId("");
       setCreateAmount("");
       setCreatePrice("");
+      setCreatePriceDisplay("");
     } catch (e) {
       setTxError(parseContractError(e));
     }
@@ -286,41 +365,95 @@ export default function TradingPage() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <label className="text-xs font-mono uppercase tracking-wider text-slate-400">
-                    Asset ID
+                    Select Asset
                   </label>
-                  <input
-                    type="number"
+                  <select
                     value={createAssetId}
                     onChange={(e) => setCreateAssetId(e.target.value)}
-                    placeholder="e.g. 0"
                     className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-2.5 font-mono text-sm text-white focus:border-cyan-400 focus:outline-none"
-                  />
+                  >
+                    <option value="">Select Asset</option>
+                    {userPositions.map((p) => (
+                      <option key={p.assetId} value={p.assetId}>
+                        {p.assetName} — {p.availableUnits.toString()} units
+                      </option>
+                    ))}
+                  </select>
+                  {userPositions.length === 0 && (
+                    <p className="mt-1 text-[11px] text-slate-500">No tokens held. Buy from marketplace first.</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="text-xs font-mono uppercase tracking-wider text-slate-400">
                     Token Units To Sell
                   </label>
-                  <input
-                    type="number"
-                    value={createAmount}
-                    onChange={(e) => setCreateAmount(e.target.value)}
-                    placeholder="e.g. 100"
-                    className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-2.5 font-mono text-sm text-white focus:border-cyan-400 focus:outline-none"
-                  />
+                  <div className="mt-1.5 flex gap-2">
+                    <input
+                      type="number"
+                      value={createAmount}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (!val) { setCreateAmount(""); return; }
+                        const pos = userPositions.find((p) => p.assetId === Number(createAssetId));
+                        const max = pos ? Number(pos.availableUnits) : Infinity;
+                        const num = Math.min(Math.max(1, Number(val)), max);
+                        setCreateAmount(String(num));
+                      }}
+                      placeholder={createAssetId ? "0" : "Select asset first"}
+                      min="1"
+                      disabled={!createAssetId}
+                      className="flex-1 rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-2.5 font-mono text-sm text-white focus:border-cyan-400 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                    {createAssetId && userPositions.find((p) => p.assetId === Number(createAssetId)) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const pos = userPositions.find((p) => p.assetId === Number(createAssetId));
+                          if (pos) setCreateAmount(pos.availableUnits.toString());
+                        }}
+                        className="shrink-0 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2.5 text-xs font-bold text-cyan-400 hover:bg-cyan-500/20 transition-all"
+                      >
+                        MAX
+                      </button>
+                    )}
+                  </div>
+                  {createAssetId && userPositions.find((p) => p.assetId === Number(createAssetId)) && (
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Available: {userPositions.find((p) => p.assetId === Number(createAssetId))?.availableUnits.toString()} units
+                    </p>
+                  )}
+                  {createAssetId && createAmount && Number(createAmount) > Number(userPositions.find((p) => p.assetId === Number(createAssetId))?.availableUnits || BigInt(0)) && (
+                    <p className="mt-1 text-[11px] text-rose-400">
+                      Exceeds available balance
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className="text-xs font-mono uppercase tracking-wider text-slate-400">
-                    Price Per Unit (Wei)
+                    Price Per Unit (tUSDT)
                   </label>
                   <input
                     type="number"
-                    value={createPrice}
-                    onChange={(e) => setCreatePrice(e.target.value)}
-                    placeholder="e.g. 1000000000000000"
+                    step="0.01"
+                    value={createPriceDisplay}
+                    onChange={(e) => {
+                      const display = e.target.value;
+                      setCreatePriceDisplay(display);
+                      const num = parseFloat(display || "0");
+                      const wei = BigInt(Math.round(num * 1_000_000));
+                      setCreatePrice(wei.toString());
+                    }}
+                    placeholder="e.g. 10.50"
+                    min="0.01"
                     className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-2.5 font-mono text-sm text-white focus:border-cyan-400 focus:outline-none"
                   />
+                  {createAssetId && userPositions.length > 0 && (
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Original: {formatUSD(userPositions.find((p) => p.assetId === Number(createAssetId))?.pricePerUnit ?? BigInt(0))}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -348,7 +481,7 @@ export default function TradingPage() {
                 <div className="mt-2 flex justify-end">
                   <button
                     onClick={handleCreateOrder}
-                    disabled={isPending || isConfirming || !createAssetId || !createAmount || !createPrice}
+                    disabled={isPending || isConfirming || !createAssetId || !createAmount || !createPrice || (createAssetId ? BigInt(createAmount || "0") > (userPositions.find((p) => p.assetId === Number(createAssetId))?.availableUnits || BigInt(0)) : false)}
                     className="rounded-xl bg-cyan-400 px-6 py-2.5 text-xs sm:text-sm font-bold text-slate-950 shadow-md shadow-cyan-500/20 hover:bg-cyan-300 disabled:opacity-40 transition-all flex items-center gap-2"
                   >
                     {isPending || isConfirming ? (
@@ -412,7 +545,7 @@ export default function TradingPage() {
                             <div>
                               <div className="text-[10px] text-slate-500">Price / Unit</div>
                               <div className="font-bold text-white">
-                                {formatUSD(normalizePrice(o.pricePerUnit))}
+                                {formatUSD(o.pricePerUnit ?? BigInt(0))}
                               </div>
                             </div>
                           </div>
@@ -473,7 +606,7 @@ export default function TradingPage() {
                               <div>
                                 <div className="text-[10px] text-slate-500 uppercase">Price / Unit</div>
                                 <div className="font-bold text-emerald-400">
-                                  {formatUSD(normalizePrice(o.pricePerUnit))}
+                                  {formatUSD(o.pricePerUnit ?? BigInt(0))}
                                 </div>
                               </div>
                             </div>

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { usePublicClient } from "wagmi";
-import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI } from "@/config/contracts";
+import { useAsetraAddress } from "@/hooks/useContractAddresses";
 import { formatUSD, formatBps, daysUntil, normalizePrice } from "@/lib/utils/format";
 import { ASSET_STATE_LABELS, AssetState } from "@/types/asset";
 import Link from "next/link";
@@ -32,6 +33,7 @@ const STATE_STYLES: Record<AssetState, { bg: string; text: string; border: strin
 
 export function MarketplacePreview() {
   const publicClient = usePublicClient();
+  const ASETRA_ADDRESS = useAsetraAddress();
   const [assets, setAssets] = useState<PreviewAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

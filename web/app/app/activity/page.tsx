@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI } from "@/config/contracts";
+import { useAsetraAddress } from "@/hooks/useContractAddresses";
 import { formatUSD, shortenAddress } from "@/lib/utils/format";
 import { Wallet, RefreshCw, ExternalLink, Activity as ActivityIcon, CheckCircle2, FileText, ShieldCheck, Coins, ClipboardList, DollarSign, Tag, XCircle, ArrowRightLeft, Lock, Unlock, CreditCard, Gem, Clock, Flag, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { ActivitySkeleton } from "@/components/skeleton/PageSkeletons";
@@ -121,6 +122,7 @@ const ITEMS_PER_PAGE = 15;
 export default function ActivityPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
+  const ASETRA_ADDRESS = useAsetraAddress();
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(0);

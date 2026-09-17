@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient, useReadContract } from "wagmi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASETRA_ABI, ASETRA_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, TUSDT_ABI } from "@/config/contracts";
+import { useAsetraAddress, useTusdtAddress } from "@/hooks/useContractAddresses";
 import { formatUSD } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
@@ -42,6 +43,8 @@ interface BorrowData {
 export default function BorrowPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
+  const ASETRA_ADDRESS = useAsetraAddress();
+  const TUSDT_ADDRESS = useTusdtAddress();
   const [assets, setAssets] = useState<BorrowData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -400,17 +403,23 @@ export default function BorrowPage() {
                         {selectedPosition && (
                           <button
                             type="button"
-                            onClick={() => setBorrowAmount(selectedPosition.availableCredit.toString())}
+                            onClick={() => setBorrowAmount((selectedPosition.availableCredit / BigInt(1e6)).toString())}
                             className="text-cyan-400 hover:underline font-bold"
                           >
-                            Max Credit
+                            Max Credit ({formatUSD(selectedPosition.availableCredit)})
                           </button>
                         )}
                       </div>
                       <input
                         type="number"
                         value={borrowAmount}
-                        onChange={(e) => setBorrowAmount(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!val) { setBorrowAmount(""); return; }
+                          const max = selectedPosition ? Number(selectedPosition.availableCredit / BigInt(1e6)) : Infinity;
+                          const num = Math.min(Math.max(0, Number(val)), max);
+                          setBorrowAmount(String(num));
+                        }}
                         placeholder="0"
                         className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-3 font-mono text-base text-white placeholder:text-slate-600 focus:border-cyan-400 focus:outline-none"
                       />

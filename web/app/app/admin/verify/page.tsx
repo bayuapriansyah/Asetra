@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI } from "@/config/contracts";
+import { useAsetraAddress } from "@/hooks/useContractAddresses";
 import { useVerifyAsset } from "@/hooks/useLifecycle";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
 import { TxProgress } from "@/components/ui/TxProgress";
@@ -26,6 +27,7 @@ interface PendingAsset {
 export default function AdminVerifyPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
+  const ASETRA_ADDRESS = useAsetraAddress();
   const { verify, txHash, isPending, isConfirming, isSuccess, isError, error, reset } = useVerifyAsset();
   const [pendingAssets, setPendingAssets] = useState<PendingAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);

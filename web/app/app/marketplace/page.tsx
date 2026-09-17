@@ -9,6 +9,7 @@ import { Search, Package, Sparkles, Filter, Layers, TrendingUp, DollarSign } fro
 import { MarketplaceSkeleton } from "@/components/skeleton/PageSkeletons";
 import { formatUSD } from "@/lib/utils/format";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 const STATE_FILTERS = [
   { label: "All Assets", value: -1 },

@@ -1,9 +1,12 @@
 "use client";
 
 import { useWriteContract, useWaitForTransactionReceipt, usePublicClient } from "wagmi";
-import { ASETRA_ABI, ASETRA_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, TUSDT_ABI } from "@/config/contracts";
+import { useAsetraAddress, useTusdtAddress } from "@/hooks/useContractAddresses";
 
 export function useBuyTokens() {
+  const ASETRA_ADDRESS = useAsetraAddress();
+  const TUSDT_ADDRESS = useTusdtAddress();
   const { writeContractAsync, data: txHash, isPending, isError: isWriteError, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess, isError: isReceiptError, error: receiptError } = useWaitForTransactionReceipt({ hash: txHash });
   const publicClient = usePublicClient();

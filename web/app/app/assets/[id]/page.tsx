@@ -10,7 +10,8 @@ import {
 } from "@/hooks/useLifecycle";
 import { useBuyTokens } from "@/hooks/useBuyTokens";
 import { useClaimYield } from "@/hooks/useClaimYield";
-import { ASETRA_ABI, ASETRA_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI, TUSDT_ABI } from "@/config/contracts";
+import { useAsetraAddress, useTusdtAddress } from "@/hooks/useContractAddresses";
 import { ASSET_STATE_LABELS, AssetState } from "@/types/asset";
 import { formatUSD, formatBps, daysUntil, shortenAddress, timestampToDate, calcTokenCost } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
@@ -73,6 +74,7 @@ function LifecycleTimeline({ current }: { current: AssetState }) {
 
 function SettlementSummary({ assetId, publicClient }: { assetId: number; publicClient: any }) {
   const [settlement, setSettlement] = useState<{ principal: bigint; yield: bigint } | null>(null);
+  const ASETRA_ADDRESS = useAsetraAddress();
 
   useEffect(() => {
     if (!publicClient) return;
@@ -171,6 +173,7 @@ function TradingActivityChart({
   const [directBuys, setDirectBuys] = useState(0);
   const [secondaryTrades, setSecondaryTrades] = useState(0);
   const [chartPoints, setChartPoints] = useState<{ idx: number; time: string; cumulative: number; volumeBohr: string; percentFunded: string }[]>([]);
+  const ASETRA_ADDRESS = useAsetraAddress();
 
   const supply = tokenSupply > 0 ? tokenSupply : 10000;
   const baseTs = createdAt > BigInt(0) ? Number(createdAt) : (Math.floor(Date.now() / 1000) - 86400 * 2);
@@ -481,6 +484,8 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const assetId = parseInt(id);
   const { address } = useAccount();
+  const ASETRA_ADDRESS = useAsetraAddress();
+  const TUSDT_ADDRESS = useTusdtAddress();
   const { asset, isLoading, refetch } = useAsset(assetId);
   const { role } = useRole();
   const RoleIcon = role ? ROLE_ICONS[role] : null;
@@ -993,23 +998,23 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
               )}
               {/* If Asset is LISTED and Investor: Direct Buy */}
               {asset.state === AssetState.LISTED && role === "investor" && (
-                <button
-                  onClick={handleBuyTokensDirect}
-                  disabled={bPending || bConfirming || Number(availableUnits) <= 0}
-                  className="w-full rounded-2xl bg-white text-slate-950 hover:bg-slate-200 py-3.5 text-sm font-black uppercase tracking-wider transition duration-150 disabled:opacity-50"
-                >
-                  {bPending ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Confirming...
-                    </span>
-                  ) : bConfirming ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Broadcasting...
-                    </span>
-                  ) : (
-                    "Buy Tokens"
-                  )}
-                </button>
+                  <button
+                    onClick={handleBuyTokensDirect}
+                    disabled={bPending || bConfirming || Number(availableUnits) <= 0}
+                    className="w-full rounded-2xl bg-white text-slate-950 hover:bg-slate-200 py-3.5 text-sm font-black uppercase tracking-wider transition duration-150 disabled:opacity-50"
+                  >
+                    {bPending ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Confirming...
+                      </span>
+                    ) : bConfirming ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Broadcasting...
+                      </span>
+                    ) : (
+                      "Buy Tokens"
+                    )}
+                  </button>
               )}
 
               {/* If Asset is ACTIVE (investor): Accrued Yield & Quick Secondary Trade */}

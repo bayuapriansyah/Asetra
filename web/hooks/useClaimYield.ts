@@ -1,9 +1,11 @@
 "use client";
 
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI } from "@/config/contracts";
+import { useAsetraAddress } from "@/hooks/useContractAddresses";
 
 export function useClaimYield() {
+  const ASETRA_ADDRESS = useAsetraAddress();
   const { writeContractAsync, data: txHash, isPending, isError: isWriteError, error: writeError, reset } = useWriteContract();
   const { isLoading: isConfirming, isSuccess, isError: isReceiptError, error: receiptError } = useWaitForTransactionReceipt({ hash: txHash });
 

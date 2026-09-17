@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI } from "@/config/contracts";
+import { useAsetraAddress } from "@/hooks/useContractAddresses";
 import { RoleGuard } from "@/components/role/RoleGuard";
 import { formatUSD, timestampToDate } from "@/lib/utils/format";
 import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
@@ -57,6 +58,7 @@ const STATE_BADGE_STYLES: Record<AssetState, { bg: string; text: string; dot: st
 export default function PortfolioPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
+  const ASETRA_ADDRESS = useAsetraAddress();
   const [positions, setPositions] = useState<PositionWithAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

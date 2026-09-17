@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient, useBalance, useReadContract } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASSETFLOW_ABI, ASSETFLOW_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
+import { ASSETFLOW_ABI, TUSDT_ABI } from "@/config/contracts";
+import { useAsetraAddress, useTusdtAddress } from "@/hooks/useContractAddresses";
 import { formatUSD, shortenAddress } from "@/lib/utils/format";
 import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
 import { useRole } from "@/lib/context/RoleContext";
@@ -65,6 +66,8 @@ export default function OverviewPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
   const { role } = useRole();
+  const ASSETFLOW_ADDRESS = useAsetraAddress();
+  const TUSDT_ADDRESS = useTusdtAddress();
   const { data: balanceData } = useBalance({ address });
   const { data: tusdtBalance } = useReadContract({
     address: TUSDT_ADDRESS,

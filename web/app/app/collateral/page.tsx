@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASETRA_ABI, ASETRA_ADDRESS } from "@/config/contracts";
+import { ASETRA_ABI } from "@/config/contracts";
+import { useAsetraAddress } from "@/hooks/useContractAddresses";
 import { formatUSD } from "@/lib/utils/format";
 import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
@@ -40,6 +41,7 @@ interface PositionWithCollateral {
 export default function CollateralPage() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
+  const ASETRA_ADDRESS = useAsetraAddress();
   const [positions, setPositions] = useState<PositionWithCollateral[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -364,9 +366,16 @@ export default function CollateralPage() {
                       <input
                         type="number"
                         value={depositAmount}
-                        onChange={(e) => setDepositAmount(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!val) { setDepositAmount(""); return; }
+                          const max = Number(freeTokens);
+                          const num = Math.min(Math.max(1, Number(val)), max);
+                          setDepositAmount(String(num));
+                        }}
                         placeholder="0"
-                        className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-3 font-mono text-base text-white placeholder:text-slate-600 focus:border-cyan-400 focus:outline-none"
+                        disabled={!selectedPosition}
+                        className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-3 font-mono text-base text-white placeholder:text-slate-600 focus:border-cyan-400 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                       />
                     </div>
 
@@ -406,9 +415,16 @@ export default function CollateralPage() {
                       <input
                         type="number"
                         value={withdrawAmount}
-                        onChange={(e) => setWithdrawAmount(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!val) { setWithdrawAmount(""); return; }
+                          const max = selectedPosition ? Number(selectedPosition.collateralAmount) : Infinity;
+                          const num = Math.min(Math.max(1, Number(val)), max);
+                          setWithdrawAmount(String(num));
+                        }}
                         placeholder="0"
-                        className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-3 font-mono text-base text-white placeholder:text-slate-600 focus:border-amber-400 focus:outline-none"
+                        disabled={!selectedPosition}
+                        className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-3 font-mono text-base text-white placeholder:text-slate-600 focus:border-amber-400 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                       />
                     </div>
 

@@ -2,12 +2,15 @@
 
 import { useAccount, useBalance, useReadContract } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ASETRA_ADDRESS, TUSDT_ABI, TUSDT_ADDRESS } from "@/config/contracts";
+import { TUSDT_ABI } from "@/config/contracts";
+import { useAsetraAddress, useTusdtAddress } from "@/hooks/useContractAddresses";
 import { Wallet, ExternalLink, Copy, Check, ShieldCheck, Globe, Cpu, Droplets } from "lucide-react";
 import { useState } from "react";
 
 export default function SettingsPage() {
   const { address, isConnected, chain } = useAccount();
+  const ASETRA_ADDRESS = useAsetraAddress();
+  const TUSDT_ADDRESS = useTusdtAddress();
   const { data: balance } = useBalance({ address });
   const { data: tusdtBalance } = useReadContract({
     address: TUSDT_ADDRESS,
