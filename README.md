@@ -1,4 +1,4 @@
-# AssetFlow
+# Asetra
 
 ### Real-world assets, made programmable.
 
