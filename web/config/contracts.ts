@@ -94,6 +94,7 @@ export const ASETRA_ABI = [
   { type: "function", name: "totalPaid", inputs: [{ name: "", type: "uint256" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
   { type: "function", name: "paidPerUnit", inputs: [{ name: "", type: "uint256" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
   { type: "function", name: "paymentFunded", inputs: [{ name: "", type: "uint256" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
+  { type: "function", name: "totalSettled", inputs: [{ name: "", type: "uint256" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
   { type: "function", name: "getPosition", inputs: [{ name: "assetId", type: "uint256" }, { name: "user", type: "address" }], outputs: [
     { name: "amount", type: "uint256" }, { name: "totalInv", type: "uint256" },
     { name: "holdingStart", type: "uint256" }, { name: "accruedYield", type: "uint256" },

@@ -103,6 +103,7 @@ contract Asetra {
     mapping(uint256 => uint256) public totalPaid;
     mapping(uint256 => uint256) public paidPerUnit;
     mapping(uint256 => uint256) public paymentFunded;
+    mapping(uint256 => uint256) public totalSettled;
     mapping(uint256 => Payment[]) public payments;
 
     event AssetCreated(uint256 indexed id, address indexed issuer, string name);
@@ -189,8 +190,13 @@ contract Asetra {
         uint256 owed = (currentPPU - lastPPU) * pos.amount / 1e18;
         pos.lastClaimedPPU = currentPPU;
 
-        if (owed > 0 && tUSDT.balanceOf(address(this)) >= owed) {
-            tUSDT.transfer(user, owed);
+        if (owed > 0) {
+            uint256 available = paymentFunded[assetId] - totalSettled[assetId];
+            if (available > 0) {
+                if (owed > available) owed = available;
+                totalSettled[assetId] += owed;
+                tUSDT.transfer(user, owed);
+            }
         }
     }
 
@@ -385,7 +391,13 @@ contract Asetra {
         uint256 owed = (currentPPU - lastPPU) * pos.amount / 1e18;
         if (owed == 0) revert InvalidAmount();
 
+        // Cap at available settlement pool
+        uint256 available = paymentFunded[assetId] - totalSettled[assetId];
+        if (available == 0) revert InsufficientFunding();
+        if (owed > available) owed = available;
+
         pos.lastClaimedPPU = currentPPU;
+        totalSettled[assetId] += owed;
 
         if (!tUSDT.transfer(msg.sender, owed)) revert TransferFailed();
 
@@ -659,6 +671,9 @@ contract Asetra {
         uint256 currentPPU = paidPerUnit[assetId];
         uint256 lastPPU = pos.lastClaimedPPU;
         if (currentPPU <= lastPPU) return 0;
-        return (currentPPU - lastPPU) * pos.amount / 1e18;
+        uint256 owed = (currentPPU - lastPPU) * pos.amount / 1e18;
+        uint256 available = paymentFunded[assetId] - totalSettled[assetId];
+        if (owed > available) return available;
+        return owed;
     }
 }

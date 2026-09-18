@@ -518,6 +518,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [totalPaid, setTotalPaid] = useState<bigint>(BigInt(0));
   const [paymentFundedAmt, setPaymentFundedAmt] = useState<bigint>(BigInt(0));
+  const [totalSettledAmt, setTotalSettledAmt] = useState<bigint>(BigInt(0));
   const [claimableProceeds, setClaimableProceeds] = useState<bigint>(BigInt(0));
   const [paidPerUnitVal, setPaidPerUnitVal] = useState<bigint>(BigInt(0));
 
@@ -635,14 +636,16 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     if (!publicClient || !asset) return;
     (async () => {
       try {
-        const [tp, pf, ppu] = await Promise.all([
+        const [tp, pf, ppu, ts] = await Promise.all([
           publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "totalPaid", args: [BigInt(assetId)] }),
           publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "paymentFunded", args: [BigInt(assetId)] }),
           publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "paidPerUnit", args: [BigInt(assetId)] }),
+          publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "totalSettled", args: [BigInt(assetId)] }),
         ]);
         setTotalPaid(tp as bigint);
         setPaymentFundedAmt(pf as bigint);
         setPaidPerUnitVal(ppu as bigint);
+        setTotalSettledAmt(ts as bigint);
 
         const count = await publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "getPaymentCount", args: [BigInt(assetId)] });
         const recs: PaymentRecord[] = [];
@@ -1018,6 +1021,14 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                     <div className="flex justify-between">
                       <span className="text-slate-400">Settlement Pool Funded</span>
                       <span className="font-bold text-emerald-400">{formatUSD(paymentFundedAmt)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400">Already Settled</span>
+                      <span className="font-bold text-amber-400">{formatUSD(totalSettledAmt)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400">Available to Claim</span>
+                      <span className="font-bold text-cyan-300">{formatUSD(paymentFundedAmt - totalSettledAmt)}</span>
                     </div>
                     <div className="flex justify-between border-t border-white/[0.06] pt-2">
                       <span className="text-slate-400">Paid Per Unit (PPU)</span>

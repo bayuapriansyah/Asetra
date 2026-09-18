@@ -607,4 +607,31 @@ contract AsetraTest is Test {
         assertEq(asetra.totalPaid(assetId), 35_000e6);
         assertEq(asetra.getPaymentCount(assetId), 2);
     }
+
+    function test_ClaimCappedAtSettlementPool() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+        _invest(assetId, TOKEN_SUPPLY);
+
+        vm.prank(admin);
+        asetra.recordPayment(assetId, 50_000e6, keccak256("evidence-1"));
+
+        _fundInvestorForPayment(admin);
+        vm.prank(admin);
+        usdt.approve(address(asetra), 50_000e6);
+        vm.prank(admin);
+        asetra.fundSettlement(assetId, 40_000e6);
+
+        uint256 claimable = asetra.getClaimableProceeds(assetId, investor);
+        assertEq(claimable, 40_000e6);
+
+        uint256 balBefore = usdt.balanceOf(investor);
+        vm.prank(investor);
+        asetra.claimProceeds(assetId);
+
+        assertEq(usdt.balanceOf(investor) - balBefore, 40_000e6);
+        assertEq(asetra.totalSettled(assetId), 40_000e6);
+    }
 }
