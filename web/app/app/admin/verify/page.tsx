@@ -400,7 +400,7 @@ export default function AdminVerifyPage() {
                       setPayAmount(wei.toString());
                     }}
                     placeholder="0.00" min="0.01" max={maxPayAmount}
-                    disabled={!payAssetId}
+                    disabled={payAssetId === null}
                     className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-3 font-mono text-base text-white placeholder:text-slate-600 focus:border-blue-400 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed" />
                 </div>
 
@@ -517,7 +517,7 @@ export default function AdminVerifyPage() {
                       setFundAmount(wei.toString());
                     }}
                     placeholder="0.00" min="0.01"
-                    disabled={!fundAssetId}
+                    disabled={fundAssetId === null}
                     className="mt-1.5 w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-3 font-mono text-base text-white placeholder:text-slate-600 focus:border-emerald-400 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed" />
                 </div>
 
