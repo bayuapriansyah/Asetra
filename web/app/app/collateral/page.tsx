@@ -103,15 +103,15 @@ export default function CollateralPage() {
               args: [BigInt(i)],
             }),
           ]);
-          const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, boolean];
-          if (p[6] && p[0] > BigInt(0)) {
+          const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, bigint, boolean];
+          if (p[7] && p[0] > BigInt(0)) {
             results.push({
               assetId: i,
               assetName: name as string,
               assetState: Number(state) as AssetState,
               amount: p[0],
               collateralAmount: p[5],
-              active: p[6],
+              active: p[7],
               faceValue: faceValue as bigint,
               tokenSupply: tokenSupply as bigint,
             });

@@ -160,8 +160,8 @@ export default function OverviewPage() {
           else if (stateNum === 3) summary.listedCount++;
           else if (stateNum >= 4) summary.activeCount++;
 
-          const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, boolean];
-          if (p[6] && p[0] > BigInt(0)) {
+          const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, bigint, boolean];
+          if (p[7] && p[0] > BigInt(0)) {
             const faceVal = faceValue as bigint;
             const supply = tokenSupply as bigint;
             results.push({

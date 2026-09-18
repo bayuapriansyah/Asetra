@@ -27,6 +27,7 @@ contract Asetra {
         uint256 accruedYield;
         uint256 claimedYield;
         uint256 collateralAmount;
+        uint256 lastClaimedPPU;
         bool active;
     }
 
@@ -38,6 +39,13 @@ contract Asetra {
         uint256 pricePerUnit;
         bool active;
         uint256 createdAt;
+    }
+
+    struct Payment {
+        uint256 amount;
+        uint256 timestamp;
+        bytes32 evidenceHash;
+        address recordedBy;
     }
 
     error Unauthorized();
@@ -54,6 +62,8 @@ contract Asetra {
     error OrderNotActive();
     error CannotTradeWithSelf();
     error TransferFailed();
+    error InsufficientFunding();
+    error PaymentExceedsFaceValue();
 
     address public admin;
     IERC20 public immutable tUSDT;
@@ -89,6 +99,12 @@ contract Asetra {
     mapping(uint256 => uint256) public totalUnitsSold;
     mapping(uint256 => mapping(address => uint256)) private borrowedAmounts;
 
+    // Payment tracking
+    mapping(uint256 => uint256) public totalPaid;
+    mapping(uint256 => uint256) public paidPerUnit;
+    mapping(uint256 => uint256) public paymentFunded;
+    mapping(uint256 => Payment[]) public payments;
+
     event AssetCreated(uint256 indexed id, address indexed issuer, string name);
     event AssetVerified(uint256 indexed id, address indexed verifier);
     event AssetTokenized(uint256 indexed id, uint256 tokenSupply);
@@ -105,6 +121,9 @@ contract Asetra {
     event AssetMatured(uint256 indexed id);
     event AssetSettled(uint256 indexed id, address indexed investor, uint256 principal, uint256 yield_);
     event FundsWithdrawn(uint256 indexed assetId, address indexed issuer, uint256 amount);
+    event PaymentRecorded(uint256 indexed assetId, uint256 amount, bytes32 evidenceHash, address indexed recordedBy);
+    event SettlementFunded(uint256 indexed assetId, uint256 amount, address indexed funder);
+    event ProceedsClaimed(uint256 indexed assetId, address indexed user, uint256 amount);
 
     constructor(address _tUSDT) {
         admin = msg.sender;
@@ -155,6 +174,24 @@ contract Asetra {
         if (pos.amount == 0 || pos.holdingStart == 0) return 0;
         uint256 duration = block.timestamp > pos.holdingStart ? block.timestamp - pos.holdingStart : 0;
         return duration / 1 days;
+    }
+
+    function _settleProceeds(uint256 assetId, address user) internal {
+        Position storage pos = positions[assetId][user];
+        uint256 currentPPU = paidPerUnit[assetId];
+        uint256 lastPPU = pos.lastClaimedPPU;
+
+        if (currentPPU <= lastPPU || pos.amount == 0) {
+            pos.lastClaimedPPU = currentPPU;
+            return;
+        }
+
+        uint256 owed = (currentPPU - lastPPU) * pos.amount / 1e18;
+        pos.lastClaimedPPU = currentPPU;
+
+        if (owed > 0 && tUSDT.balanceOf(address(this)) >= owed) {
+            tUSDT.transfer(user, owed);
+        }
     }
 
     // =========================================================================
@@ -301,6 +338,58 @@ contract Asetra {
         if (!tUSDT.transfer(msg.sender, funded)) revert TransferFailed();
 
         emit FundsWithdrawn(assetId, msg.sender, funded);
+    }
+
+    // =========================================================================
+    // PAYMENT ENGINE
+    // =========================================================================
+
+    function recordPayment(uint256 assetId, uint256 amount, bytes32 evidenceHash) external onlyAdmin {
+        _requireAssetExists(assetId);
+        if (amount == 0) revert InvalidAmount();
+        if (totalPaid[assetId] + amount > assetFaceValue[assetId]) revert PaymentExceedsFaceValue();
+
+        totalPaid[assetId] += amount;
+        paidPerUnit[assetId] = (totalPaid[assetId] * 1e18) / assetTokenSupply[assetId];
+
+        payments[assetId].push(Payment({
+            amount: amount,
+            timestamp: block.timestamp,
+            evidenceHash: evidenceHash,
+            recordedBy: msg.sender
+        }));
+
+        emit PaymentRecorded(assetId, amount, evidenceHash, msg.sender);
+    }
+
+    function fundSettlement(uint256 assetId, uint256 amount) external {
+        _requireAssetExists(assetId);
+        if (amount == 0) revert InvalidAmount();
+
+        if (!tUSDT.transferFrom(msg.sender, address(this), amount)) revert TransferFailed();
+        paymentFunded[assetId] += amount;
+
+        emit SettlementFunded(assetId, amount, msg.sender);
+    }
+
+    function claimProceeds(uint256 assetId) external {
+        _requireAssetExists(assetId);
+
+        Position storage pos = positions[assetId][msg.sender];
+        if (pos.amount == 0) revert InsufficientUnits();
+
+        uint256 currentPPU = paidPerUnit[assetId];
+        uint256 lastPPU = pos.lastClaimedPPU;
+        if (currentPPU <= lastPPU) revert InvalidAmount();
+
+        uint256 owed = (currentPPU - lastPPU) * pos.amount / 1e18;
+        if (owed == 0) revert InvalidAmount();
+
+        pos.lastClaimedPPU = currentPPU;
+
+        if (!tUSDT.transfer(msg.sender, owed)) revert TransferFailed();
+
+        emit ProceedsClaimed(assetId, msg.sender, owed);
     }
 
     // =========================================================================
@@ -537,9 +626,9 @@ contract Asetra {
         return borrowedAmounts[assetId][user];
     }
 
-    function getPosition(uint256 assetId, address user) external view returns (uint256 amount, uint256 totalInv, uint256 holdingStart, uint256 accruedYield, uint256 claimedYield, uint256 collateralAmount, bool active) {
+    function getPosition(uint256 assetId, address user) external view returns (uint256 amount, uint256 totalInv, uint256 holdingStart, uint256 accruedYield, uint256 claimedYield, uint256 collateralAmount, uint256 lastClaimedPPU, bool active) {
         Position storage pos = positions[assetId][user];
-        return (pos.amount, pos.totalInvested, pos.holdingStart, pos.accruedYield, pos.claimedYield, pos.collateralAmount, pos.active);
+        return (pos.amount, pos.totalInvested, pos.holdingStart, pos.accruedYield, pos.claimedYield, pos.collateralAmount, pos.lastClaimedPPU, pos.active);
     }
 
     function getSellOrder(uint256 orderId) external view returns (uint256 oId, uint256 aId, address seller, uint256 amt, uint256 price, bool isActive, uint256 created) {
@@ -553,5 +642,23 @@ contract Asetra {
 
     function getAvailableCredit(uint256 assetId, address user) external view returns (uint256) {
         return _getAvailableCredit(assetId, user);
+    }
+
+    function getPaymentCount(uint256 assetId) external view returns (uint256) {
+        return payments[assetId].length;
+    }
+
+    function getPayment(uint256 assetId, uint256 index) external view returns (uint256 amount, uint256 timestamp, bytes32 evidenceHash, address recordedBy) {
+        Payment storage p = payments[assetId][index];
+        return (p.amount, p.timestamp, p.evidenceHash, p.recordedBy);
+    }
+
+    function getClaimableProceeds(uint256 assetId, address user) external view returns (uint256) {
+        Position storage pos = positions[assetId][user];
+        if (pos.amount == 0) return 0;
+        uint256 currentPPU = paidPerUnit[assetId];
+        uint256 lastPPU = pos.lastClaimedPPU;
+        if (currentPPU <= lastPPU) return 0;
+        return (currentPPU - lastPPU) * pos.amount / 1e18;
     }
 }

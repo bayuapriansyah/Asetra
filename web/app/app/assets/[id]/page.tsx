@@ -565,7 +565,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
             functionName: "getPosition", args: [BigInt(assetId), address],
           }),
         ]);
-        const posData = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, boolean];
+        const posData = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, bigint, boolean];
         setUserUnitsOwned(posData[0]);
         const claimed = posData[4];
         const claimable = (yield_ as bigint) - claimed;

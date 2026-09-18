@@ -115,8 +115,8 @@ export default function YieldPage() {
             }),
           ]);
 
-          const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, boolean];
-          if (p[6] && p[0] > BigInt(0)) {
+          const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, bigint, boolean];
+          if (p[7] && p[0] > BigInt(0)) {
             const holdingStart = Number(p[2]);
             const holdingSeconds =
               holdingStart > 0 ? Math.max(0, Math.floor(Date.now() / 1000) - holdingStart) : 0;

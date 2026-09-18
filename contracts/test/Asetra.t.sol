@@ -143,7 +143,7 @@ contract AsetraTest is Test {
         _listAsset(assetId);
         _invest(assetId, 1000);
 
-        (uint256 amt, , , , , , bool active) = asetra.getPosition(assetId, investor);
+        (uint256 amt, , , , , , , bool active) = asetra.getPosition(assetId, investor);
         assertEq(amt, 1000);
         assertTrue(active);
     }
@@ -253,7 +253,7 @@ contract AsetraTest is Test {
         vm.prank(investor2);
         asetra.executeTrade(orderId, 500);
 
-        (uint256 amt, , , , , , ) = asetra.getPosition(assetId, investor2);
+        (uint256 amt, , , , , , , ) = asetra.getPosition(assetId, investor2);
         assertEq(amt, 500);
     }
 
@@ -267,7 +267,7 @@ contract AsetraTest is Test {
         vm.prank(investor);
         asetra.depositCollateral(assetId, 500);
 
-        (, , , , , uint256 collateralAmt, ) = asetra.getPosition(assetId, investor);
+        (, , , , , uint256 collateralAmt, , ) = asetra.getPosition(assetId, investor);
         assertEq(collateralAmt, 500);
     }
 
@@ -283,7 +283,7 @@ contract AsetraTest is Test {
         vm.prank(investor);
         asetra.withdrawCollateral(assetId, 200);
 
-        (, , , , , uint256 collateralAmt, ) = asetra.getPosition(assetId, investor);
+        (, , , , , uint256 collateralAmt, , ) = asetra.getPosition(assetId, investor);
         assertEq(collateralAmt, 300);
     }
 
@@ -474,5 +474,137 @@ contract AsetraTest is Test {
         vm.prank(issuer);
         vm.expectRevert(Asetra.InvalidAmount.selector);
         asetra.withdrawRaisedFunds(assetId);
+    }
+
+    // ========== PAYMENT ENGINE TESTS ==========
+
+    function _fundInvestorForPayment(address user) internal {
+        usdt.mint(user, 100_000e6);
+    }
+
+    function test_RecordPayment() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+        _invest(assetId, TOKEN_SUPPLY);
+
+        vm.prank(admin);
+        asetra.recordPayment(assetId, 20_000e6, keccak256("evidence-1"));
+
+        assertEq(asetra.totalPaid(assetId), 20_000e6);
+        assertEq(asetra.getPaymentCount(assetId), 1);
+
+        (uint256 amt, , bytes32 hash, address recorder) = asetra.getPayment(assetId, 0);
+        assertEq(amt, 20_000e6);
+        assertEq(hash, keccak256("evidence-1"));
+        assertEq(recorder, admin);
+    }
+
+    function test_FundSettlement() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+        _invest(assetId, TOKEN_SUPPLY);
+
+        _fundInvestorForPayment(admin);
+        vm.prank(admin);
+        usdt.approve(address(asetra), 20_000e6);
+        vm.prank(admin);
+        asetra.fundSettlement(assetId, 20_000e6);
+
+        assertEq(asetra.paymentFunded(assetId), 20_000e6);
+        assertEq(usdt.balanceOf(address(asetra)), TOKEN_SUPPLY * asetra.assetPricePerUnit(assetId) + 20_000e6);
+    }
+
+    function test_ClaimProceeds() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+        _invest(assetId, TOKEN_SUPPLY);
+
+        vm.prank(admin);
+        asetra.recordPayment(assetId, 20_000e6, keccak256("evidence-1"));
+
+        _fundInvestorForPayment(admin);
+        vm.prank(admin);
+        usdt.approve(address(asetra), 20_000e6);
+        vm.prank(admin);
+        asetra.fundSettlement(assetId, 20_000e6);
+
+        uint256 balBefore = usdt.balanceOf(investor);
+        vm.prank(investor);
+        asetra.claimProceeds(assetId);
+
+        uint256 expectedClaim = (20_000e6 * 1e18 / TOKEN_SUPPLY) * TOKEN_SUPPLY / 1e18;
+        assertEq(usdt.balanceOf(investor) - balBefore, expectedClaim);
+    }
+
+    function test_Revert_OnlyAdminCanRecordPayment() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+
+        vm.prank(investor);
+        vm.expectRevert(Asetra.Unauthorized.selector);
+        asetra.recordPayment(assetId, 20_000e6, keccak256("evidence-1"));
+    }
+
+    function test_Revert_PaymentExceedsFaceValue() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+
+        vm.prank(admin);
+        vm.expectRevert(Asetra.PaymentExceedsFaceValue.selector);
+        asetra.recordPayment(assetId, FACE_VALUE + 1, keccak256("evidence-1"));
+    }
+
+    function test_Revert_ClaimProceedsNoPayment() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+        _invest(assetId, TOKEN_SUPPLY);
+
+        vm.prank(investor);
+        vm.expectRevert(Asetra.InvalidAmount.selector);
+        asetra.claimProceeds(assetId);
+    }
+
+    function test_MultiplePaymentsAndClaims() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+        _invest(assetId, TOKEN_SUPPLY);
+
+        vm.prank(admin);
+        asetra.recordPayment(assetId, 20_000e6, keccak256("evidence-1"));
+
+        _fundInvestorForPayment(admin);
+        vm.prank(admin);
+        usdt.approve(address(asetra), 50_000e6);
+        vm.prank(admin);
+        asetra.fundSettlement(assetId, 20_000e6);
+
+        vm.prank(investor);
+        asetra.claimProceeds(assetId);
+
+        vm.prank(admin);
+        asetra.recordPayment(assetId, 15_000e6, keccak256("evidence-2"));
+
+        vm.prank(admin);
+        asetra.fundSettlement(assetId, 15_000e6);
+
+        vm.prank(investor);
+        asetra.claimProceeds(assetId);
+
+        assertEq(asetra.totalPaid(assetId), 35_000e6);
+        assertEq(asetra.getPaymentCount(assetId), 2);
     }
 }

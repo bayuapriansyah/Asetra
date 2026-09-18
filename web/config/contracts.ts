@@ -65,6 +65,12 @@ export const ASETRA_ABI = [
   { type: "function", name: "withdrawCollateral", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
   { type: "function", name: "withdrawRaisedFunds", inputs: [{ name: "assetId", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
 
+  { type: "function", name: "recordPayment", inputs: [
+    { name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }, { name: "evidenceHash", type: "bytes32" }
+  ], outputs: [], stateMutability: "nonpayable" },
+  { type: "function", name: "fundSettlement", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
+  { type: "function", name: "claimProceeds", inputs: [{ name: "assetId", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
+
   { type: "function", name: "borrow", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
   { type: "function", name: "repay", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
   { type: "function", name: "getHealth", inputs: [{ name: "assetId", type: "uint256" }, { name: "user", type: "address" }], outputs: [{ name: "healthFactor", type: "uint256" }, { name: "healthy", type: "bool" }], stateMutability: "view" },
@@ -79,11 +85,20 @@ export const ASETRA_ABI = [
   { type: "function", name: "getBorrowedAmount", inputs: [{ name: "assetId", type: "uint256" }, { name: "user", type: "address" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
   { type: "function", name: "getAvailableUnits", inputs: [{ name: "assetId", type: "uint256" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
   { type: "function", name: "getAvailableCredit", inputs: [{ name: "assetId", type: "uint256" }, { name: "user", type: "address" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
+  { type: "function", name: "getPaymentCount", inputs: [{ name: "assetId", type: "uint256" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
+  { type: "function", name: "getPayment", inputs: [{ name: "assetId", type: "uint256" }, { name: "index", type: "uint256" }], outputs: [
+    { name: "amount", type: "uint256" }, { name: "timestamp", type: "uint256" },
+    { name: "evidenceHash", type: "bytes32" }, { name: "recordedBy", type: "address" }
+  ], stateMutability: "view" },
+  { type: "function", name: "getClaimableProceeds", inputs: [{ name: "assetId", type: "uint256" }, { name: "user", type: "address" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
+  { type: "function", name: "totalPaid", inputs: [{ name: "", type: "uint256" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
+  { type: "function", name: "paidPerUnit", inputs: [{ name: "", type: "uint256" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
+  { type: "function", name: "paymentFunded", inputs: [{ name: "", type: "uint256" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },
   { type: "function", name: "getPosition", inputs: [{ name: "assetId", type: "uint256" }, { name: "user", type: "address" }], outputs: [
     { name: "amount", type: "uint256" }, { name: "totalInv", type: "uint256" },
     { name: "holdingStart", type: "uint256" }, { name: "accruedYield", type: "uint256" },
     { name: "claimedYield", type: "uint256" }, { name: "collateralAmount", type: "uint256" },
-    { name: "active", type: "bool" }
+    { name: "lastClaimedPPU", type: "uint256" }, { name: "active", type: "bool" }
   ], stateMutability: "view" },
   { type: "function", name: "getSellOrder", inputs: [{ name: "orderId", type: "uint256" }], outputs: [
     { name: "oId", type: "uint256" }, { name: "aId", type: "uint256" },
@@ -169,6 +184,18 @@ export const ASETRA_ABI = [
   ]},
   { type: "event", name: "FundsWithdrawn", inputs: [
     { name: "assetId", type: "uint256", indexed: true }, { name: "issuer", type: "address", indexed: true },
+    { name: "amount", type: "uint256", indexed: false }
+  ]},
+  { type: "event", name: "PaymentRecorded", inputs: [
+    { name: "assetId", type: "uint256", indexed: true }, { name: "amount", type: "uint256", indexed: false },
+    { name: "evidenceHash", type: "bytes32", indexed: false }, { name: "recordedBy", type: "address", indexed: true }
+  ]},
+  { type: "event", name: "SettlementFunded", inputs: [
+    { name: "assetId", type: "uint256", indexed: true }, { name: "amount", type: "uint256", indexed: false },
+    { name: "funder", type: "address", indexed: true }
+  ]},
+  { type: "event", name: "ProceedsClaimed", inputs: [
+    { name: "assetId", type: "uint256", indexed: true }, { name: "user", type: "address", indexed: true },
     { name: "amount", type: "uint256", indexed: false }
   ]},
 ] as const;

@@ -118,9 +118,9 @@ export default function BorrowPage() {
               args: [BigInt(i), address],
             }),
           ]);
-          const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, boolean];
+          const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, bigint, boolean];
           const h = health as readonly [bigint, boolean];
-          if (p[6] && (p[0] > BigInt(0) || (borrowed as bigint) > BigInt(0))) {
+          if (p[7] && (p[0] > BigInt(0) || (borrowed as bigint) > BigInt(0))) {
             results.push({
               assetId: i,
               assetName: name as string,

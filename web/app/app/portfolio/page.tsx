@@ -126,8 +126,8 @@ export default function PortfolioPage() {
             }),
           ]);
 
-          const posData = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, boolean];
-          if (posData[6] && posData[0] > BigInt(0)) {
+          const posData = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, bigint, boolean];
+          if (posData[7] && posData[0] > BigInt(0)) {
             results.push({
               assetId: BigInt(i),
               amount: posData[0],
@@ -136,7 +136,7 @@ export default function PortfolioPage() {
               accruedYield: posData[3],
               claimedYield: posData[4],
               collateralAmount: posData[5],
-              active: posData[6],
+              active: posData[7],
               assetName: name as string,
               assetType: assetType as string,
               assetState: Number(state) as AssetState,

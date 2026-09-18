@@ -60,6 +60,7 @@ export interface PositionData {
   accruedYield: bigint;
   claimedYield: bigint;
   collateralAmount: bigint;
+  lastClaimedPPU: bigint;
   active: boolean;
 }
 

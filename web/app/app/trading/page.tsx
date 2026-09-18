@@ -120,9 +120,9 @@ export default function TradingPage() {
               args: [BigInt(i)],
             }),
           ]);
-          const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, boolean];
-          // p[0]=amount, p[5]=collateralAmount, p[6]=active
-          if (p[6] && p[0] > BigInt(0)) {
+          const p = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, bigint, boolean];
+          // p[0]=amount, p[5]=collateralAmount, p[7]=active
+          if (p[7] && p[0] > BigInt(0)) {
             const available = p[0] - p[5];
             const pricePerUnit = tokenSupply as bigint > BigInt(0)
               ? (faceValue as bigint) / (tokenSupply as bigint)
