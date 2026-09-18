@@ -104,6 +104,7 @@ contract Asetra {
     event YieldClaimed(uint256 indexed assetId, address indexed user, uint256 amount);
     event AssetMatured(uint256 indexed id);
     event AssetSettled(uint256 indexed id, address indexed investor, uint256 principal, uint256 yield_);
+    event FundsWithdrawn(uint256 indexed assetId, address indexed issuer, uint256 amount);
 
     constructor(address _tUSDT) {
         admin = msg.sender;
@@ -283,6 +284,23 @@ contract Asetra {
         }
 
         emit InvestmentMade(assetId, msg.sender, units, cost);
+    }
+
+    // =========================================================================
+    // ISSUER WITHDRAWAL
+    // =========================================================================
+
+    function withdrawRaisedFunds(uint256 assetId) external {
+        _requireAssetExists(assetId);
+        if (msg.sender != assetIssuer[assetId]) revert Unauthorized();
+
+        uint256 funded = assetFundedAmount[assetId];
+        if (funded == 0) revert InvalidAmount();
+
+        assetFundedAmount[assetId] = 0;
+        if (!tUSDT.transfer(msg.sender, funded)) revert TransferFailed();
+
+        emit FundsWithdrawn(assetId, msg.sender, funded);
     }
 
     // =========================================================================

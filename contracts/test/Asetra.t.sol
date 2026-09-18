@@ -431,4 +431,48 @@ contract AsetraTest is Test {
         vm.expectRevert(Asetra.InvalidStateTransition.selector);
         asetra.settleAsset(assetId);
     }
+
+    function test_WithdrawRaisedFunds() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+        _invest(assetId, TOKEN_SUPPLY);
+
+        uint256 expectedFunds = TOKEN_SUPPLY * asetra.assetPricePerUnit(assetId);
+        uint256 balBefore = usdt.balanceOf(issuer);
+
+        vm.prank(issuer);
+        asetra.withdrawRaisedFunds(assetId);
+
+        assertEq(usdt.balanceOf(issuer) - balBefore, expectedFunds);
+        assertEq(asetra.assetFundedAmount(assetId), 0);
+    }
+
+    function test_Revert_OnlyIssuerCanWithdraw() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+        _invest(assetId, TOKEN_SUPPLY);
+
+        vm.prank(investor);
+        vm.expectRevert(Asetra.Unauthorized.selector);
+        asetra.withdrawRaisedFunds(assetId);
+    }
+
+    function test_Revert_CannotWithdrawZero() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+        _invest(assetId, TOKEN_SUPPLY);
+
+        vm.prank(issuer);
+        asetra.withdrawRaisedFunds(assetId);
+
+        vm.prank(issuer);
+        vm.expectRevert(Asetra.InvalidAmount.selector);
+        asetra.withdrawRaisedFunds(assetId);
+    }
 }

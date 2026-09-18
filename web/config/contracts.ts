@@ -63,6 +63,7 @@ export const ASETRA_ABI = [
 
   { type: "function", name: "depositCollateral", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
   { type: "function", name: "withdrawCollateral", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
+  { type: "function", name: "withdrawRaisedFunds", inputs: [{ name: "assetId", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
 
   { type: "function", name: "borrow", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
   { type: "function", name: "repay", inputs: [{ name: "assetId", type: "uint256" }, { name: "amount", type: "uint256" }], outputs: [], stateMutability: "nonpayable" },
@@ -165,6 +166,10 @@ export const ASETRA_ABI = [
   { type: "event", name: "AssetSettled", inputs: [
     { name: "id", type: "uint256", indexed: true }, { name: "investor", type: "address", indexed: true },
     { name: "principal", type: "uint256", indexed: false }, { name: "yield_", type: "uint256", indexed: false }
+  ]},
+  { type: "event", name: "FundsWithdrawn", inputs: [
+    { name: "assetId", type: "uint256", indexed: true }, { name: "issuer", type: "address", indexed: true },
+    { name: "amount", type: "uint256", indexed: false }
   ]},
 ] as const;
 
