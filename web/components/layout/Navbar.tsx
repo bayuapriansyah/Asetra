@@ -62,7 +62,7 @@ const MOBILE_NAV_SECTIONS: { title: string; items: MobileNavItem[] }[] = [
   {
     title: "PORTFOLIO & YIELD",
     items: [
-      { label: "My Positions", href: "/app/portfolio", icon: Briefcase, roles: ["investor"] },
+      { label: "My Positions", href: "/app/portfolio", icon: Briefcase, roles: ["issuer", "investor"] },
       { label: "Yield & Staking", href: "/app/yield", icon: TrendingUp, roles: ["investor"] },
     ],
   },

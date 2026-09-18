@@ -45,7 +45,7 @@ const navSections: { title: string; items: NavItem[] }[] = [
   {
     title: "PORTFOLIO & YIELD",
     items: [
-      { label: "My Positions", href: "/app/portfolio", icon: Briefcase, roles: ["investor"] },
+      { label: "My Positions", href: "/app/portfolio", icon: Briefcase, roles: ["issuer", "investor"] },
       { label: "Yield & Staking", href: "/app/yield", icon: TrendingUp, roles: ["investor"] },
     ],
   },
@@ -98,17 +98,6 @@ export function Sidebar() {
       <div className="flex h-full flex-col justify-between overflow-y-auto p-4">
         <div className="space-y-6">
           {/* Role Badge */}
-          {role && badge && (
-            <div className={`rounded-xl border ${badge.border} ${badge.bg} px-3 py-2.5 flex items-center gap-2.5`}>
-              <span className="text-base">{RoleIcon && <RoleIcon className="h-4 w-4" />}</span>
-              <div>
-                <div className={`text-xs font-bold uppercase tracking-wider ${badge.text}`}>
-                  {ROLE_LABELS[role]}
-                </div>
-                <div className="text-[10px] text-slate-500">Session Role</div>
-              </div>
-            </div>
-          )}
 
           {filteredSections.map((section) => (
             <div key={section.title} className="space-y-1">
