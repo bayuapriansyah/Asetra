@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, usePublicClient, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { keccak256, stringToBytes } from "viem";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ASETRA_ABI, TUSDT_ABI } from "@/config/contracts";
 import { useAsetraAddress, useTusdtAddress } from "@/hooks/useContractAddresses";
@@ -40,18 +41,8 @@ const TABS: { id: TabType; label: string; icon: typeof FileText }[] = [
   { id: "fund", label: "Fund Settlement", icon: Banknote },
 ];
 
-function keccak256(text: string): `0x${string}` {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < text.length; i++) {
-    hash ^= text.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  let hex = hash.toString(16).padStart(8, "0");
-  for (let i = 1; i < 8; i++) {
-    const part = ((hash * (i + 1)) ^ (hash >>> (i * 3))).toString(16).padStart(8, "0");
-    hex += part;
-  }
-  return (`0x${hex.slice(0, 64).padStart(64, "0")}`) as `0x${string}`;
+function hashEvidence(text: string): `0x${string}` {
+  return keccak256(stringToBytes(text));
 }
 
 export default function AdminVerifyPage() {
@@ -167,7 +158,7 @@ export default function AdminVerifyPage() {
     if (payAssetId === null || !payAmount) return;
     setTxError(null);
     try {
-      const evHash = keccak256(payEvidence || `payment-${Date.now()}`);
+      const evHash = hashEvidence(payEvidence || `payment-${Date.now()}`);
       await writeContractAsync({
         address: ASETRA_ADDRESS,
         abi: ASETRA_ABI,
