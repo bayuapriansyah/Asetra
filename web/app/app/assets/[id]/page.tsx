@@ -507,12 +507,19 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const { claimYield, isPending: cPending, isConfirming: cConfirming, isSuccess: cSuccess, isError: cIsError, error: cError, reset: cReset } = useClaimYield();
 
   const [buyUnits, setBuyUnits] = useState<number>(1);
-  const [activeTab, setActiveTab] = useState<"usdc" | "leverage">("usdc");
+  const [activeTab, setActiveTab] = useState<"usdc" | "leverage" | "payments">("usdc");
   const [tokenSupply, setTokenSupply] = useState("10000");
 
   const [txStatus, setTxStatus] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
   const [successTxHash, setSuccessTxHash] = useState<string | null>(null);
+
+  interface PaymentRecord { amount: bigint; timestamp: bigint; evidenceHash: string; recordedBy: string; }
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [totalPaid, setTotalPaid] = useState<bigint>(BigInt(0));
+  const [paymentFundedAmt, setPaymentFundedAmt] = useState<bigint>(BigInt(0));
+  const [claimableProceeds, setClaimableProceeds] = useState<bigint>(BigInt(0));
+  const [paidPerUnitVal, setPaidPerUnitVal] = useState<bigint>(BigInt(0));
 
   const publicClient = usePublicClient();
   const explorerBase = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.bohr.life";
@@ -623,6 +630,36 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   }, [publicClient, assetId, address]);
 
   useEffect(() => { if (asset) loadJourney(); }, [asset, loadJourney]);
+
+  useEffect(() => {
+    if (!publicClient || !asset) return;
+    (async () => {
+      try {
+        const [tp, pf, ppu] = await Promise.all([
+          publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "totalPaid", args: [BigInt(assetId)] }),
+          publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "paymentFunded", args: [BigInt(assetId)] }),
+          publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "paidPerUnit", args: [BigInt(assetId)] }),
+        ]);
+        setTotalPaid(tp as bigint);
+        setPaymentFundedAmt(pf as bigint);
+        setPaidPerUnitVal(ppu as bigint);
+
+        const count = await publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "getPaymentCount", args: [BigInt(assetId)] });
+        const recs: PaymentRecord[] = [];
+        for (let j = 0; j < Number(count); j++) {
+          const p = await publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "getPayment", args: [BigInt(assetId), BigInt(j)] });
+          const d = p as readonly [bigint, bigint, `0x${string}`, string];
+          recs.push({ amount: d[0], timestamp: d[1], evidenceHash: d[2], recordedBy: d[3] });
+        }
+        setPayments(recs);
+
+        if (address) {
+          const cp = await publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "getClaimableProceeds", args: [BigInt(assetId), address] });
+          setClaimableProceeds(cp as bigint);
+        }
+      } catch { /* ignore */ }
+    })();
+  }, [publicClient, asset, assetId, address]);
 
   const handleAction = async (action: () => Promise<unknown>, label: string) => {
     setTxError(null);
@@ -810,7 +847,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                   {asset.state === AssetState.LISTED ? "Buy Tokens" : "Position Hub"}
                 </h2>
 
-                {/* USDC / Leverage Tab Toggle */}
+                {/* USDC / Leverage / Payments Tab Toggle */}
                 <div className="inline-flex rounded-xl bg-slate-950 p-1 border border-white/[0.08]">
                   <button
                     onClick={() => setActiveTab("usdc")}
@@ -831,6 +868,16 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                     }`}
                   >
                     Leverage
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("payments")}
+                    className={`rounded-lg px-3 py-1 text-xs font-bold transition ${
+                      activeTab === "payments"
+                        ? "bg-slate-800 text-white shadow-sm"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    Payments
                   </button>
                 </div>
               </div>
@@ -925,8 +972,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                     </div>
                   )}
                 </div>
-              ) : (
-                /* TAB 2: LEVERAGE & COLLATERAL VAULT */
+              ) : activeTab === "leverage" ? (
                 <div className="mt-5 space-y-4">
                   <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2">
                     <div className="flex items-center gap-2 text-xs font-bold text-amber-300 uppercase font-mono">
@@ -951,6 +997,65 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                       Open Collateral Vault →
                     </button>
                   </Link>
+                </div>
+              ) : (
+                /* TAB 3: PAYMENT HISTORY */
+                <div className="mt-5 space-y-4">
+                  <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-bold text-blue-300 uppercase font-mono">
+                      <FileText className="h-4 w-4" /> Payment-Adjusted Receivable
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Real-world debtor payments are recorded on-chain and distributed pro-rata to token holders.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/[0.06] bg-slate-950/90 p-4 space-y-1.5 font-mono text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Total Paid by Debtor</span>
+                      <span className="font-bold text-blue-300">{formatUSD(totalPaid)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Settlement Pool Funded</span>
+                      <span className="font-bold text-emerald-400">{formatUSD(paymentFundedAmt)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-white/[0.06] pt-2">
+                      <span className="text-slate-400">Paid Per Unit (PPU)</span>
+                      <span className="font-bold text-white">{paidPerUnitVal > BigInt(0) ? formatUSD(paidPerUnitVal) : "—"}</span>
+                    </div>
+                    {address && (
+                      <div className="flex justify-between border-t border-white/[0.06] pt-2">
+                        <span className="text-slate-400">Your Claimable</span>
+                        <span className={`font-bold ${claimableProceeds > BigInt(0) ? "text-emerald-300" : "text-slate-500"}`}>
+                          {claimableProceeds > BigInt(0) ? formatUSD(claimableProceeds) : "—"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {payments.length > 0 ? (
+                    <div className="space-y-2">
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
+                        {payments.length} Payment{payments.length !== 1 ? "s" : ""} Recorded
+                      </div>
+                      {payments.map((p, idx) => (
+                        <div key={idx} className="rounded-xl border border-white/[0.06] bg-slate-950/60 p-3 font-mono text-xs">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-bold text-white">{formatUSD(p.amount)}</span>
+                            <span className="text-slate-500">{p.timestamp > BigInt(0) ? timestampToDate(p.timestamp) : "—"}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[10px] text-slate-500">
+                            <span>Evidence: {p.evidenceHash.slice(0, 10)}...{p.evidenceHash.slice(-6)}</span>
+                            <span>By: {p.recordedBy.slice(0, 6)}...{p.recordedBy.slice(-4)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-xs text-slate-500">
+                      No payments recorded yet for this asset.
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useAccount, usePublicClient } from "wagmi";
+import { useAccount, usePublicClient, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { ASETRA_ABI } from "@/config/contracts";
 import { useAsetraAddress } from "@/hooks/useContractAddresses";
 import { RoleGuard } from "@/components/role/RoleGuard";
 import { formatUSD, timestampToDate } from "@/lib/utils/format";
+import { parseContractError } from "@/lib/utils/errors";
+import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
+import { TxProgress } from "@/components/ui/TxProgress";
 import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
 import {
   Wallet,
@@ -18,6 +21,8 @@ import {
   Shield,
   Layers,
   ArrowUpRight,
+  Banknote,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { PortfolioSkeleton } from "@/components/skeleton/PageSkeletons";
@@ -42,6 +47,7 @@ interface PositionWithAsset extends Position {
   liveYield: bigint;
   faceValue: bigint;
   tokenSupply: bigint;
+  claimableProceeds: bigint;
 }
 
 const STATE_BADGE_STYLES: Record<AssetState, { bg: string; text: string; dot: string; border: string }> = {
@@ -62,6 +68,10 @@ export default function PortfolioPage() {
   const [positions, setPositions] = useState<PositionWithAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const { writeContractAsync, data: claimTxHash, isPending: claimPending, reset: claimReset } = useWriteContract();
+  const { isLoading: claimConfirming, isSuccess: claimSuccess, isError: claimIsError, error: claimError } = useWaitForTransactionReceipt({ hash: claimTxHash });
+  const [claimingAssetId, setClaimingAssetId] = useState<string | null>(null);
+
   const loadPositions = useCallback(async () => {
     if (!publicClient || !address) return;
     try {
@@ -75,55 +85,16 @@ export default function PortfolioPage() {
 
       for (let i = 0; i < total; i++) {
         try {
-          const [pos, name, assetType, state, borrowed, liveYield, faceValue, tokenSupply] = await Promise.all([
-            publicClient.readContract({
-              address: ASETRA_ADDRESS,
-              abi: ASETRA_ABI,
-              functionName: "getPosition",
-              args: [BigInt(i), address],
-            }),
-            publicClient.readContract({
-              address: ASETRA_ADDRESS,
-              abi: ASETRA_ABI,
-              functionName: "assetName",
-              args: [BigInt(i)],
-            }),
-            publicClient.readContract({
-              address: ASETRA_ADDRESS,
-              abi: ASETRA_ABI,
-              functionName: "assetType",
-              args: [BigInt(i)],
-            }),
-            publicClient.readContract({
-              address: ASETRA_ADDRESS,
-              abi: ASETRA_ABI,
-              functionName: "assetState",
-              args: [BigInt(i)],
-            }),
-            publicClient.readContract({
-              address: ASETRA_ADDRESS,
-              abi: ASETRA_ABI,
-              functionName: "getBorrowedAmount",
-              args: [BigInt(i), address],
-            }),
-            publicClient.readContract({
-              address: ASETRA_ADDRESS,
-              abi: ASETRA_ABI,
-              functionName: "calculateYield",
-              args: [BigInt(i), address],
-            }),
-            publicClient.readContract({
-              address: ASETRA_ADDRESS,
-              abi: ASETRA_ABI,
-              functionName: "assetFaceValue",
-              args: [BigInt(i)],
-            }),
-            publicClient.readContract({
-              address: ASETRA_ADDRESS,
-              abi: ASETRA_ABI,
-              functionName: "assetTokenSupply",
-              args: [BigInt(i)],
-            }),
+          const [pos, name, assetType, state, borrowed, liveYield, faceValue, tokenSupply, claimable] = await Promise.all([
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "getPosition", args: [BigInt(i), address] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetName", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetType", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetState", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "getBorrowedAmount", args: [BigInt(i), address] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "calculateYield", args: [BigInt(i), address] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFaceValue", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetTokenSupply", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "getClaimableProceeds", args: [BigInt(i), address] }),
           ]);
 
           const posData = pos as readonly [bigint, bigint, bigint, bigint, bigint, bigint, bigint, boolean];
@@ -144,6 +115,7 @@ export default function PortfolioPage() {
               liveYield: liveYield as bigint,
               faceValue: faceValue as bigint,
               tokenSupply: tokenSupply as bigint,
+              claimableProceeds: claimable as bigint,
             });
           }
         } catch {
@@ -164,8 +136,32 @@ export default function PortfolioPage() {
     else setIsLoading(false);
   }, [isConnected, loadPositions]);
 
+  useEffect(() => {
+    if (claimSuccess) {
+      claimReset();
+      setClaimingAssetId(null);
+      loadPositions();
+    }
+  }, [claimSuccess, claimReset, loadPositions]);
+
+  const handleClaimProceeds = async (assetId: string) => {
+    setClaimingAssetId(assetId);
+    try {
+      await writeContractAsync({
+        address: ASETRA_ADDRESS,
+        abi: ASETRA_ABI,
+        functionName: "claimProceeds",
+        args: [BigInt(assetId)],
+      });
+    } catch (e) {
+      console.error("Claim failed:", e);
+      setClaimingAssetId(null);
+    }
+  };
+
   const totalInvested = positions.reduce((acc, p) => acc + p.totalInvested, BigInt(0));
   const totalYield = positions.reduce((acc, p) => acc + p.liveYield, BigInt(0));
+  const totalClaimable = positions.reduce((acc, p) => acc + p.claimableProceeds, BigInt(0));
   const totalCollateral = positions.reduce((acc, p) => {
     if (p.tokenSupply > BigInt(0)) {
       return acc + (p.collateralAmount * p.faceValue) / p.tokenSupply;
@@ -210,8 +206,26 @@ export default function PortfolioPage() {
             </motion.div>
           ) : (
             <motion.div key="content" initial={{opacity:0, y:12}} animate={{opacity:1, y:0}} transition={{duration:0.35, ease:[0.16,1,0.3,1]}}>
+
+          {/* Claim Feedback */}
+          {(claimPending || claimConfirming) && claimingAssetId && (
+            <div className="mb-6">
+              <TxProgress step={claimConfirming ? "pending" : claimPending ? "preparing" : "idle"} />
+            </div>
+          )}
+          {claimSuccess && claimTxHash && (
+            <div className="mb-6">
+              <TxSuccessBanner txHash={claimTxHash} message="Proceeds claimed successfully!" onDismiss={claimReset} />
+            </div>
+          )}
+          {claimIsError && claimError && (
+            <div className="mb-6 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4">
+              <p className="text-sm font-medium text-rose-300">{parseContractError(claimError)}</p>
+            </div>
+          )}
+
           {/* Stat Cards Strip */}
-          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
             <div className="web3-card rounded-2xl p-4">
               <div className="flex items-center justify-between text-slate-400">
                 <span className="text-[11px] font-mono uppercase tracking-wider">Total Invested</span>
@@ -229,6 +243,16 @@ export default function PortfolioPage() {
               </div>
               <div className="mt-2 text-2xl font-black font-mono text-emerald-400">
                 {formatUSD(totalYield)}
+              </div>
+            </div>
+
+            <div className="web3-card rounded-2xl p-4 border border-emerald-500/30 bg-emerald-500/[0.06]">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-[11px] font-mono uppercase tracking-wider">Claimable</span>
+                <Banknote className="h-4 w-4 text-emerald-400" />
+              </div>
+              <div className="mt-2 text-2xl font-black font-mono text-emerald-300">
+                {formatUSD(totalClaimable)}
               </div>
             </div>
 
@@ -254,7 +278,7 @@ export default function PortfolioPage() {
 
             <div className="web3-card rounded-2xl p-4">
               <div className="flex items-center justify-between text-slate-400">
-                <span className="text-[11px] font-mono uppercase tracking-wider">Total Positions</span>
+                <span className="text-[11px] font-mono uppercase tracking-wider">Positions</span>
                 <Layers className="h-4 w-4 text-cyan-400" />
               </div>
               <div className="mt-2 text-2xl font-black font-mono text-white">
@@ -290,10 +314,10 @@ export default function PortfolioPage() {
                       <th className="px-4 py-3.5 text-right">Invested</th>
                       <th className="px-4 py-3.5 text-right">Current Value</th>
                       <th className="px-4 py-3.5 text-right">Yield</th>
+                      <th className="px-4 py-3.5 text-right">Claimable</th>
                       <th className="px-4 py-3.5 text-right">Collateral</th>
                       <th className="px-4 py-3.5 text-right">Borrowed</th>
                       <th className="px-4 py-3.5">Holding Since</th>
-                      <th className="px-4 py-3.5">Duration</th>
                       <th className="px-5 py-3.5 text-center">Action</th>
                     </tr>
                   </thead>
@@ -304,6 +328,7 @@ export default function PortfolioPage() {
                           ? (p.amount * p.faceValue) / p.tokenSupply
                           : BigInt(0);
                       const badge = STATE_BADGE_STYLES[p.assetState] || STATE_BADGE_STYLES[0];
+                      const isClaimingThis = claimingAssetId === p.assetId.toString() && (claimPending || claimConfirming);
 
                       return (
                         <tr
@@ -352,6 +377,16 @@ export default function PortfolioPage() {
                             +{formatUSD(p.liveYield)}
                           </td>
 
+                          <td className="px-4 py-4 text-right">
+                            {p.claimableProceeds > BigInt(0) ? (
+                              <span className="font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-2 py-0.5">
+                                {formatUSD(p.claimableProceeds)}
+                              </span>
+                            ) : (
+                              <span className="text-slate-500">—</span>
+                            )}
+                          </td>
+
                           <td className="px-4 py-4 text-right text-sky-400">
                             {p.collateralAmount > BigInt(0) ? formatUSD(p.collateralAmount) : "—"}
                           </td>
@@ -364,23 +399,30 @@ export default function PortfolioPage() {
                             {p.holdingStart > BigInt(0) ? timestampToDate(p.holdingStart) : "—"}
                           </td>
 
-                          <td className="px-4 py-4 text-slate-300">
-                            {p.holdingStart > BigInt(0) ? (() => {
-                              const held = Math.floor(Date.now() / 1000) - Number(p.holdingStart);
-                              const days = Math.floor(held / 86400);
-                              const hours = Math.floor((held % 86400) / 3600);
-                              return days > 0 ? `${days}d ${hours}h` : `${hours}h`;
-                            })() : "—"}
-                          </td>
-
                           <td className="px-5 py-4 text-center">
-                            <Link
-                              href={`/app/assets/${p.assetId}`}
-                              className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-slate-800/60 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:border-cyan-400/40 hover:text-cyan-300 transition-all"
-                            >
-                              <span>Manage</span>
-                              <ArrowUpRight className="h-3 w-3" />
-                            </Link>
+                            <div className="flex items-center justify-center gap-1.5">
+                              {p.claimableProceeds > BigInt(0) && (
+                                <button
+                                  onClick={() => handleClaimProceeds(p.assetId.toString())}
+                                  disabled={isClaimingThis || claimSuccess}
+                                  className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                                >
+                                  {isClaimingThis ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Banknote className="h-3 w-3" />
+                                  )}
+                                  Claim
+                                </button>
+                              )}
+                              <Link
+                                href={`/app/assets/${p.assetId}`}
+                                className="inline-flex items-center gap-1 rounded-lg border border-white/[0.08] bg-slate-800/60 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:border-cyan-400/40 hover:text-cyan-300 transition-all"
+                              >
+                                <span>Manage</span>
+                                <ArrowUpRight className="h-3 w-3" />
+                              </Link>
+                            </div>
                           </td>
                         </tr>
                       );
