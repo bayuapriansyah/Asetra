@@ -40,7 +40,7 @@ export default function IssuerAssetsPage() {
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetCounterparty", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFaceValue", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetTokenSupply", args: [BigInt(i)] }),
-            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFundedAmount", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "totalRaised", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFundingTarget", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetMaturity", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetYieldBps", args: [BigInt(i)] }),

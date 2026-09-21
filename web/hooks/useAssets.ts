@@ -22,7 +22,7 @@ async function fetchAsset(publicClient: NonNullable<ReturnType<typeof usePublicC
     publicClient.readContract({ address: c, abi: a, functionName: "assetCounterparty", args: [i] }),
     publicClient.readContract({ address: c, abi: a, functionName: "assetFaceValue", args: [i] }),
     publicClient.readContract({ address: c, abi: a, functionName: "assetTokenSupply", args: [i] }),
-    publicClient.readContract({ address: c, abi: a, functionName: "assetFundedAmount", args: [i] }),
+    publicClient.readContract({ address: c, abi: a, functionName: "totalRaised", args: [i] }),
     publicClient.readContract({ address: c, abi: a, functionName: "assetFundingTarget", args: [i] }),
     publicClient.readContract({ address: c, abi: a, functionName: "assetMaturity", args: [i] }),
     publicClient.readContract({ address: c, abi: a, functionName: "assetYieldBps", args: [i] }),

@@ -62,6 +62,7 @@ interface IssuerAsset {
   faceValue: bigint;
   tokenSupply: bigint;
   fundedAmount: bigint;
+  totalRaised: bigint;
   totalPaid: bigint;
   paymentFunded: bigint;
   availableUnits: bigint;
@@ -318,7 +319,7 @@ function IssuerView({ address, isConnected, publicClient, ASETRA_ADDRESS }: {
       const results: IssuerAsset[] = [];
       for (let i = 0; i < total; i++) {
         try {
-          const [issuer, name, assetType, state, faceValue, tokenSupply, fundedAmount, totalPaid_, paymentFunded_, availableUnits_] = await Promise.all([
+          const [issuer, name, assetType, state, faceValue, tokenSupply, fundedAmount, totalRaised_, totalPaid_, paymentFunded_, availableUnits_] = await Promise.all([
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetIssuer", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetName", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetType", args: [BigInt(i)] }),
@@ -326,6 +327,7 @@ function IssuerView({ address, isConnected, publicClient, ASETRA_ADDRESS }: {
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFaceValue", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetTokenSupply", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "assetFundedAmount", args: [BigInt(i)] }),
+            publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "totalRaised", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "totalPaid", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "paymentFunded", args: [BigInt(i)] }),
             publicClient.readContract({ address: ASETRA_ADDRESS, abi: ASETRA_ABI, functionName: "getAvailableUnits", args: [BigInt(i)] }),
@@ -334,7 +336,7 @@ function IssuerView({ address, isConnected, publicClient, ASETRA_ADDRESS }: {
             results.push({
               assetId: BigInt(i), name: name as string, assetType: assetType as string,
               state: Number(state) as AssetState, faceValue: faceValue as bigint, tokenSupply: tokenSupply as bigint,
-              fundedAmount: fundedAmount as bigint, totalPaid: totalPaid_ as bigint,
+              fundedAmount: fundedAmount as bigint, totalRaised: totalRaised_ as bigint, totalPaid: totalPaid_ as bigint,
               paymentFunded: paymentFunded_ as bigint, availableUnits: availableUnits_ as bigint,
             });
           }
@@ -353,7 +355,7 @@ function IssuerView({ address, isConnected, publicClient, ASETRA_ADDRESS }: {
     catch (e) { console.error("Withdraw failed:", e); setWithdrawingId(null); }
   };
 
-  const totalRaised = assets.reduce((a, p) => a + p.fundedAmount, BigInt(0));
+  const totalRaisedSum = assets.reduce((a, p) => a + p.totalRaised, BigInt(0));
   const totalPayments = assets.reduce((a, p) => a + p.totalPaid, BigInt(0));
   const activeAssets = assets.filter((a) => a.state >= 3 && a.state <= 5).length;
 
@@ -391,7 +393,7 @@ function IssuerView({ address, isConnected, publicClient, ASETRA_ADDRESS }: {
 
               <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard label="Total Assets" value={assets.length.toString()} icon={Coins} iconColor="text-emerald-400" />
-                <StatCard label="Total Raised" value={formatUSD(totalRaised)} icon={DollarSign} iconColor="text-cyan-400" />
+                <StatCard label="Total Raised" value={formatUSD(totalRaisedSum)} icon={DollarSign} iconColor="text-cyan-400" />
                 <StatCard label="Payments Received" value={formatUSD(totalPayments)} icon={Receipt} iconColor="text-emerald-400" valueColor="text-emerald-400" />
                 <StatCard label="Active Assets" value={activeAssets.toString()} icon={Landmark} iconColor="text-amber-400" valueColor="text-amber-400" />
               </div>
@@ -449,7 +451,7 @@ function IssuerView({ address, isConnected, publicClient, ASETRA_ADDRESS }: {
                                 </div>
                               </td>
                               <td className="px-4 py-4 text-right">
-                                <div className="font-bold text-white">{formatUSD(a.fundedAmount)}</div>
+                                <div className="font-bold text-white">{formatUSD(a.totalRaised)}</div>
                                 <div className="text-[10px] text-slate-500">of {formatUSD(a.faceValue)}</div>
                               </td>
                               <td className="px-4 py-4 text-right">

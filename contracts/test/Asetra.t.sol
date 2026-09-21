@@ -634,4 +634,22 @@ contract AsetraTest is Test {
         assertEq(usdt.balanceOf(investor) - balBefore, 40_000e6);
         assertEq(asetra.totalSettled(assetId), 40_000e6);
     }
+
+    function test_TotalRaisedPersistsAfterWithdraw() public {
+        uint256 assetId = _createAsset();
+        _verifyAsset(assetId);
+        _tokenizeAsset(assetId);
+        _listAsset(assetId);
+        _invest(assetId, TOKEN_SUPPLY);
+
+        uint256 expectedRaised = TOKEN_SUPPLY * asetra.assetPricePerUnit(assetId);
+        assertEq(asetra.totalRaised(assetId), expectedRaised);
+        assertEq(asetra.assetFundedAmount(assetId), expectedRaised);
+
+        vm.prank(issuer);
+        asetra.withdrawRaisedFunds(assetId);
+
+        assertEq(asetra.assetFundedAmount(assetId), 0);
+        assertEq(asetra.totalRaised(assetId), expectedRaised);
+    }
 }

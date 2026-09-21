@@ -81,6 +81,7 @@ contract Asetra {
     mapping(uint256 => uint256) public assetTokenSupply;
     mapping(uint256 => uint256) public assetFundedAmount;
     mapping(uint256 => uint256) public assetFundingTarget;
+    mapping(uint256 => uint256) public totalRaised;
     mapping(uint256 => uint256) public assetMaturity;
     mapping(uint256 => uint256) public assetYieldBps;
     mapping(uint256 => bytes32) public assetDocHash;
@@ -309,6 +310,7 @@ contract Asetra {
 
         totalUnitsSold[assetId] += units;
         assetFundedAmount[assetId] += cost;
+        totalRaised[assetId] += cost;
         totalInvested[assetId] += cost;
 
         Position storage pos = positions[assetId][msg.sender];
