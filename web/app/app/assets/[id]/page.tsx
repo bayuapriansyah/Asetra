@@ -1117,6 +1117,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                   <button
                     onClick={handleBuyTokensDirect}
                     disabled={bPending || bConfirming || Number(availableUnits) <= 0}
+                    title={Number(availableUnits) <= 0 ? "No tokens available" : ""}
                     className="w-full rounded-2xl bg-white text-slate-950 hover:bg-slate-200 py-3.5 text-sm font-black uppercase tracking-wider transition duration-150 disabled:opacity-50"
                   >
                     {bPending ? (
@@ -1139,6 +1140,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                   <button
                     onClick={handleClaimYield}
                     disabled={cPending || cConfirming || claimableYield === BigInt(0)}
+                    title={claimableYield === BigInt(0) ? "No yield to claim" : ""}
                     className="w-full rounded-2xl bg-emerald-400 text-slate-950 hover:bg-emerald-300 py-3 text-xs font-black uppercase tracking-wider transition duration-150 disabled:opacity-40 disabled:bg-slate-800 disabled:text-slate-500"
                   >
                     <Gift className="mr-1.5 inline h-4 w-4" />

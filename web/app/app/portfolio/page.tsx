@@ -268,6 +268,7 @@ function InvestorView({ address, isConnected, publicClient, ASETRA_ADDRESS }: {
                                 <div className="flex items-center justify-center gap-1.5">
                                   {p.claimableProceeds > BigInt(0) && (
                                     <button onClick={() => handleClaimProceeds(p.assetId.toString())} disabled={isClaimingThis || claimSuccess}
+                                      title={p.assetState !== 5 && p.assetState !== 6 ? "Asset must be ACTIVE or MATURED" : ""}
                                       className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20 transition-all disabled:opacity-50">
                                       {isClaimingThis ? <Loader2 className="h-3 w-3 animate-spin" /> : <Banknote className="h-3 w-3" />}Claim
                                     </button>
@@ -461,7 +462,8 @@ function IssuerView({ address, isConnected, publicClient, ASETRA_ADDRESS }: {
                               <td className="px-5 py-4 text-center">
                                 <div className="flex items-center justify-center gap-1.5">
                                   {canWithdraw && (
-                                    <button onClick={() => handleWithdraw(a.assetId.toString())} disabled={isWithdrawingThis || withdrawSuccess}
+                                    <button onClick={() => handleWithdraw(a.assetId.toString())} disabled={isWithdrawingThis || withdrawSuccess || (a.state !== 5 && a.state !== 6)}
+                                      title={a.state !== 5 && a.state !== 6 ? "Asset must be ACTIVE or MATURED to withdraw" : ""}
                                       className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-[11px] font-bold text-cyan-300 hover:bg-cyan-500/20 transition-all disabled:opacity-50">
                                       {isWithdrawingThis ? <Loader2 className="h-3 w-3 animate-spin" /> : <DollarSign className="h-3 w-3" />}Withdraw
                                     </button>

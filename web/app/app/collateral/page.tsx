@@ -11,6 +11,8 @@ import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
 import { TxProgress } from "@/components/ui/TxProgress";
 import { RoleGuard } from "@/components/role/RoleGuard";
+import { useRole } from "@/lib/context/RoleContext";
+import { StateGuideBanner } from "@/components/state/StateGuideBanner";
 import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
 import {
   Shield,
@@ -40,6 +42,7 @@ interface PositionWithCollateral {
 
 export default function CollateralPage() {
   const { address, isConnected } = useAccount();
+  const { role } = useRole();
   const publicClient = usePublicClient();
   const ASETRA_ADDRESS = useAsetraAddress();
   const [positions, setPositions] = useState<PositionWithCollateral[]>([]);
@@ -217,6 +220,11 @@ export default function CollateralPage() {
         )}
       </div>
 
+      {/* State Guide Banner */}
+      {selectedPosition && role && (
+        <StateGuideBanner assetState={selectedPosition.assetState} role={role} />
+      )}
+
       {!isConnected ? (
         <div className="web3-card rounded-2xl p-12 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
@@ -385,7 +393,8 @@ export default function CollateralPage() {
 
                     <button
                       onClick={handleDeposit}
-                      disabled={isPending || isConfirming || selectedAsset === null || !depositAmount}
+                      disabled={isPending || isConfirming || selectedAsset === null || !depositAmount || (selectedPosition ? selectedPosition.assetState !== 5 : false)}
+                      title={selectedPosition && selectedPosition.assetState !== 5 ? "Asset must be ACTIVE to deposit collateral" : ""}
                       className="w-full rounded-xl bg-cyan-400 py-3 text-sm font-bold text-slate-950 shadow-md shadow-cyan-500/20 hover:bg-cyan-300 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
                     >
                       {isPending || isConfirming ? (
@@ -430,7 +439,8 @@ export default function CollateralPage() {
 
                     <button
                       onClick={handleWithdraw}
-                      disabled={isPending || isConfirming || selectedAsset === null || !withdrawAmount}
+                      disabled={isPending || isConfirming || selectedAsset === null || !withdrawAmount || (selectedPosition ? selectedPosition.assetState !== 5 : false)}
+                      title={selectedPosition && selectedPosition.assetState !== 5 ? "Asset must be ACTIVE to withdraw collateral" : ""}
                       className="w-full rounded-xl bg-amber-400 py-3 text-sm font-bold text-slate-950 shadow-md shadow-amber-500/20 hover:bg-amber-300 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
                     >
                       {isPending || isConfirming ? (

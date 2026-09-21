@@ -11,6 +11,8 @@ import { parseContractError } from "@/lib/utils/errors";
 import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
 import { TxProgress } from "@/components/ui/TxProgress";
 import { RoleGuard } from "@/components/role/RoleGuard";
+import { useRole } from "@/lib/context/RoleContext";
+import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
 import {
   Loader2,
   Wallet,
@@ -41,6 +43,7 @@ interface SellOrderData {
 interface UserPosition {
   assetId: number;
   assetName: string;
+  assetState: AssetState;
   amount: bigint;
   availableUnits: bigint;
   pricePerUnit: bigint;
@@ -48,6 +51,7 @@ interface UserPosition {
 
 export default function TradingPage() {
   const { address, isConnected } = useAccount();
+  const { role } = useRole();
   const publicClient = usePublicClient();
   const ASETRA_ADDRESS = useAsetraAddress();
   const TUSDT_ADDRESS = useTusdtAddress();
@@ -130,6 +134,7 @@ export default function TradingPage() {
             positions.push({
               assetId: i,
               assetName: name as string,
+              assetState: Number(state) as AssetState,
               amount: p[0],
               availableUnits: available,
               pricePerUnit,
@@ -481,7 +486,8 @@ export default function TradingPage() {
                 <div className="mt-2 flex justify-end">
                   <button
                     onClick={handleCreateOrder}
-                    disabled={isPending || isConfirming || !createAssetId || !createAmount || !createPrice || (createAssetId ? BigInt(createAmount || "0") > (userPositions.find((p) => p.assetId === Number(createAssetId))?.availableUnits || BigInt(0)) : false)}
+                    disabled={isPending || isConfirming || !createAssetId || !createAmount || !createPrice || (createAssetId ? BigInt(createAmount || "0") > (userPositions.find((p) => p.assetId === Number(createAssetId))?.availableUnits || BigInt(0)) : false) || (createAssetId ? (() => { const s = userPositions.find((p) => p.assetId === Number(createAssetId))?.assetState; return s !== undefined && s !== 2 && s !== 3; })() : false)}
+                    title={createAssetId ? (() => { const s = userPositions.find((p) => p.assetId === Number(createAssetId))?.assetState; return s !== undefined && s !== 2 && s !== 3 ? "Asset must be TOKENIZED or LISTED" : ""; })() : "Select an asset first"}
                     className="rounded-xl bg-cyan-400 px-6 py-2.5 text-xs sm:text-sm font-bold text-slate-950 shadow-md shadow-cyan-500/20 hover:bg-cyan-300 disabled:opacity-40 transition-all flex items-center gap-2"
                   >
                     {isPending || isConfirming ? (

@@ -12,6 +12,8 @@ import { TxSuccessBanner } from "@/components/ui/TxSuccessBanner";
 import { TxProgress } from "@/components/ui/TxProgress";
 import { BorrowSkeleton } from "@/components/skeleton/PageSkeletons";
 import { RoleGuard } from "@/components/role/RoleGuard";
+import { useRole } from "@/lib/context/RoleContext";
+import { StateGuideBanner } from "@/components/state/StateGuideBanner";
 import { ASSET_STATE_LABELS, type AssetState } from "@/types/asset";
 import {
   Wallet,
@@ -42,6 +44,7 @@ interface BorrowData {
 
 export default function BorrowPage() {
   const { address, isConnected } = useAccount();
+  const { role } = useRole();
   const publicClient = usePublicClient();
   const ASETRA_ADDRESS = useAsetraAddress();
   const TUSDT_ADDRESS = useTusdtAddress();
@@ -242,6 +245,11 @@ export default function BorrowPage() {
         )}
       </div>
 
+      {/* State Guide Banner */}
+      {selectedPosition && role && (
+        <StateGuideBanner assetState={selectedPosition.assetState} role={role} />
+      )}
+
       {!isConnected ? (
         <div className="web3-card rounded-2xl p-12 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
@@ -435,7 +443,8 @@ export default function BorrowPage() {
 
                     <button
                       onClick={handleBorrow}
-                      disabled={isPending || isConfirming || selectedAsset === null || !borrowAmount}
+                      disabled={isPending || isConfirming || selectedAsset === null || !borrowAmount || (selectedPosition ? selectedPosition.assetState !== 5 : false)}
+                      title={selectedPosition && selectedPosition.assetState !== 5 ? "Asset must be ACTIVE to borrow" : ""}
                       className="w-full rounded-xl bg-cyan-400 py-3 text-sm font-bold text-slate-950 shadow-md shadow-cyan-500/20 hover:bg-cyan-300 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
                     >
                       {isPending || isConfirming ? (
@@ -468,8 +477,10 @@ export default function BorrowPage() {
                         isConfirming ||
                         selectedAsset === null ||
                         !selectedPosition ||
-                        selectedPosition.borrowedAmount <= BigInt(0)
+                        selectedPosition.borrowedAmount <= BigInt(0) ||
+                        selectedPosition.assetState !== 5
                       }
+                      title={selectedPosition && selectedPosition.assetState !== 5 ? "Asset must be ACTIVE to repay" : ""}
                       className="w-full rounded-xl bg-emerald-400 py-3 text-sm font-bold text-slate-950 shadow-md shadow-emerald-500/20 hover:bg-emerald-300 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
                     >
                       {isPending || isConfirming ? (
