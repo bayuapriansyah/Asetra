@@ -18,6 +18,14 @@ export const metadata: Metadata = {
   title: "Asetra — Real-World Assets, Made Programmable",
   description:
     "Asetra transforms verified real-world assets into programmable on-chain financial positions.",
+  icons: {
+    icon: [
+      { url: "/Asetra.png", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    shortcut: "/Asetra.png",
+    apple: "/Asetra.png",
+  },
 };
 
 export default function RootLayout({
