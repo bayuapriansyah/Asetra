@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain, useBalance } from "wagmi";
 import { Button } from "@/components/ui/button";
-import { BOT_CHAIN_TESTNET } from "@/config/chains";
+import { BOT_CHAIN_MAINNET } from "@/config/chains";
 import { Wallet, LogOut, ExternalLink, AlertTriangle, Copy, Check } from "lucide-react";
 
 export function ConnectButton() {
@@ -20,8 +20,8 @@ export function ConnectButton() {
     setMounted(true);
   }, []);
 
-  const isWrongNetwork = isConnected && chainId !== BOT_CHAIN_TESTNET.id;
-  const explorerUrl = `${BOT_CHAIN_TESTNET.blockExplorers.default.url}/address/${address}`;
+  const isWrongNetwork = isConnected && chainId !== BOT_CHAIN_MAINNET.id;
+  const explorerUrl = `${BOT_CHAIN_MAINNET.blockExplorers.default.url}/address/${address}`;
 
   const copyAddress = () => {
     if (!address) return;
@@ -48,7 +48,7 @@ export function ConnectButton() {
           <Button
             variant="destructive"
             size="sm"
-            onClick={() => switchChain({ chainId: BOT_CHAIN_TESTNET.id })}
+            onClick={() => switchChain({ chainId: BOT_CHAIN_MAINNET.id })}
             className="rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 text-xs font-semibold px-3"
           >
             <AlertTriangle className="mr-1.5 h-3.5 w-3.5 animate-pulse" />

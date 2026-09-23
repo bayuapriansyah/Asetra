@@ -370,7 +370,7 @@ export default function DigitalGlobe() {
         }}
       >
         <div className="select-none p-4 whitespace-pre leading-none">
-          {`0x9F42...BOHR\nSYS::SETTLE\nSTATE::ACTIVE\n[VERIFIED]\n8888 4421\n1001 0110\nFIN_RWA::OK`}
+          {`0x9F42...BOT\nSYS::SETTLE\nSTATE::ACTIVE\n[VERIFIED]\n8888 4421\n1001 0110\nFIN_RWA::OK`}
         </div>
       </div>
 

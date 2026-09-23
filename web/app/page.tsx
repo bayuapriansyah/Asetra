@@ -272,7 +272,7 @@ export default function LandingPage() {
               <div className="inline-flex items-center gap-2.5 rounded-full border border-[rgba(100,160,255,0.15)] bg-[rgba(255,255,255,0.04)] px-4 py-1.5">
                 <span className="lp-pulse h-2 w-2 rounded-full bg-[#4a9eff]" />
                 <span className="text-[11px] font-bold tracking-[0.16em] text-[#4a9eff] uppercase" style={{ fontFamily: "var(--font-display)" }}>
-                  Live on BOT Chain Testnet — Chain 968
+                  Live on BOT Chain — Chain 677
                 </span>
               </div>
 
@@ -616,7 +616,7 @@ export default function LandingPage() {
                 <span className="lp-text-gradient italic">on your balance sheet.</span>
               </h2>
               <p className="mt-5 text-sm sm:text-base text-[rgba(255,255,255,0.45)] max-w-xl mx-auto">
-                Connect your Web3 wallet and interact directly with the Asetra state machine on BOT Chain Testnet — no intermediaries, no custodians.
+                Connect your Web3 wallet and interact directly with the Asetra state machine on BOT Chain — no intermediaries, no custodians.
               </p>
               <div className="mt-9 flex flex-wrap justify-center gap-4">
                 <Link href="/app" className="lp-btn-primary">
@@ -643,7 +643,7 @@ export default function LandingPage() {
               <span className="font-bold text-xl text-white" style={{ fontFamily: "var(--font-display)" }}>Asetra Protocol</span>
             </div>
             <div className="flex items-center gap-4 text-xs font-bold text-[rgba(255,255,255,0.35)]" style={{ fontFamily: "var(--font-display)" }}>
-              <a href="https://scan.bohr.life" target="_blank" rel="noopener noreferrer" className="hover:text-[#4a9eff] transition">
+              <a href="https://scan.botchain.ai" target="_blank" rel="noopener noreferrer" className="hover:text-[#4a9eff] transition">
                 Explorer
               </a>
               <span className="text-[rgba(255,255,255,0.15)]">&bull;</span>
@@ -673,7 +673,7 @@ export default function LandingPage() {
           </div>
 
           <p className="mt-8 text-center text-[11px] leading-relaxed text-[rgba(255,255,255,0.2)] max-w-3xl mx-auto">
-            Asetra is an experimental protocol deployed on BOT Chain Testnet (Chain ID: 968).
+            Asetra is an experimental protocol deployed on BOT Chain (Chain ID: 677).
             Digital asset offerings involve substantial risk, including illiquidity and total loss of capital.
             Nothing on this page constitutes financial advice or a solicitation to purchase securities.
             Verify every transaction against the official explorer before signing.

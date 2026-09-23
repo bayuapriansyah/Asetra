@@ -213,7 +213,7 @@ export default function CreateAssetPage() {
     }
   };
 
-  const explorerBase = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.bohr.life";
+  const explorerBase = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.botchain.ai";
 
   return (
     <RoleGuard allowed={["issuer"]}>
@@ -237,7 +237,7 @@ export default function CreateAssetPage() {
           </div>
           <h2 className="text-xl font-black text-white">Wallet Connection Required</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Connect your Web3 wallet to sign asset origination transactions on the BOT Chain Testnet.
+             Connect your Web3 wallet to sign asset origination transactions on BOT Chain.
           </p>
         </div>
       ) : (
@@ -439,7 +439,7 @@ export default function CreateAssetPage() {
                   </span>
                 ) : isConfirming ? (
                   <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin" /> Confirming on BOT Chain Testnet...
+                    <Loader2 className="h-5 w-5 animate-spin" /> Confirming on BOT Chain...
                   </span>
                 ) : (
                   "Create & Originate RWA"

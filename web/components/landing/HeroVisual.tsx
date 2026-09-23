@@ -177,7 +177,7 @@ export default function HeroVisual() {
         <div style={{ position:"absolute", bottom:"0%", left:"6%", right:"6%", borderRadius:12, background:"linear-gradient(90deg,rgba(8,6,24,.94) 0%,rgba(30,24,80,.65) 50%,rgba(8,6,24,.94) 100%)", border:"1px solid rgba(99,102,241,.22)", backdropFilter:"blur(14px)", padding:"7px 14px", display:"flex", alignItems:"center", justifyContent:"space-between", zIndex:20, animation:"rg-bi .6s ease-out both" }}>
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
             <div style={{ width:6, height:6, borderRadius:"50%", background:"#34d399", boxShadow:"0 0 8px #34d399", animation:"rg-bl 1.4s ease-in-out infinite" }}/>
-            <span style={{ fontSize:8, fontWeight:800, color:"rgba(255,255,255,.3)", letterSpacing:"0.16em", textTransform:"uppercase", fontFamily:"Space Grotesk,sans-serif" }}>Live · BOT Chain Testnet</span>
+            <span style={{ fontSize:8, fontWeight:800, color:"rgba(255,255,255,.3)", letterSpacing:"0.16em", textTransform:"uppercase", fontFamily:"Space Grotesk,sans-serif" }}>Live · BOT Chain</span>
           </div>
           <div style={{ display:"flex", gap:14 }}>
             {([["Vol","$10.4M","#818cf8"],["Chain","968","#60a5fa"],["Gas","~0","#34d399"]] as [string,string,string][]).map(([l,v,c])=>(

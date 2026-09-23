@@ -163,12 +163,12 @@ export function Sidebar() {
               Programmable RWA state engine running on BOT Chain.
             </p>
             <a
-              href="https://scan.bohr.life"
+              href="https://scan.botchain.ai"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-[11px] font-mono text-cyan-400 hover:text-cyan-300 hover:underline"
             >
-              <span>scan.bohr.life</span>
+              <span>scan.botchain.ai</span>
               <ExternalLink className="h-3 w-3" />
             </a>
           </div>

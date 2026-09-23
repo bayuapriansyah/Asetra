@@ -256,7 +256,7 @@ export default function OverviewPage() {
           </div>
           <h3 className="text-xl font-bold text-white mb-2">Connect Your Wallet</h3>
           <p className="mx-auto max-w-md text-sm text-slate-400 mb-6">
-            Connect your Web3 wallet on BOT Chain Testnet to continue.
+            Connect your Web3 wallet on BOT Chain to continue.
           </p>
           <div className="inline-block">
             <p className="text-xs font-mono text-cyan-400">Click &quot;Connect Wallet&quot; in the navigation bar above.</p>
@@ -516,9 +516,9 @@ export default function OverviewPage() {
               <div className="mb-8 grid gap-4 sm:grid-cols-2">
                 <div className="web3-card rounded-2xl p-5 flex items-center justify-between">
                   <div>
-                    <div className="text-[11px] text-slate-500 uppercase font-mono">BOHR Balance</div>
+                    <div className="text-[11px] text-slate-500 uppercase font-mono">BOT Balance</div>
                     <div className="mt-1 text-xl font-bold font-mono text-white">
-                      {balanceData ? `${(Number(balanceData.value) / 10 ** balanceData.decimals).toFixed(4)} BOHR` : "—"}
+                      {balanceData ? `${(Number(balanceData.value) / 10 ** balanceData.decimals).toFixed(4)} BOT` : "—"}
                     </div>
                   </div>
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">

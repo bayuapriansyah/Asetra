@@ -204,7 +204,7 @@ export default function ActivityPage() {
     else setIsLoading(false);
   }, [isConnected, loadActivity]);
 
-  const explorerBase = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.bohr.life";
+  const explorerBase = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.botchain.ai";
 
   const totalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
   const paginatedEvents = events.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE);

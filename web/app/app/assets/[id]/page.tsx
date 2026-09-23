@@ -374,7 +374,7 @@ function TradingActivityChart({
             ${formattedPriceStr}
           </div>
           <div className="mt-1 text-xs font-mono font-semibold text-emerald-400">
-            Token Price (BOHR)
+            Token Price (BOT)
           </div>
         </div>
 
@@ -523,7 +523,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const [paidPerUnitVal, setPaidPerUnitVal] = useState<bigint>(BigInt(0));
 
   const publicClient = usePublicClient();
-  const explorerBase = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.bohr.life";
+  const explorerBase = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.botchain.ai";
   const isIssuer = address && asset && address.toLowerCase() === asset.issuer.toLowerCase();
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -982,7 +982,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                       <Landmark className="h-4 w-4" /> 60% Max Safe LTV
                     </div>
                     <p className="text-xs text-slate-300 leading-relaxed">
-                      Borrow credit against your RWA positions on BOT Chain Testnet without liquidating token ownership.
+                      Borrow credit against your RWA positions on BOT Chain without liquidating token ownership.
                     </p>
                   </div>
 
@@ -991,7 +991,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                       Borrow Capacity Estimate
                     </span>
                     <div className="text-xl font-black text-emerald-400 font-mono">
-                      ${(parseFloat(estimatedCost) * 0.6).toFixed(2)} BOHR
+                      ${(parseFloat(estimatedCost) * 0.6).toFixed(2)} BOT
                     </div>
                   </div>
 
@@ -1310,7 +1310,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
           <div>
             <span className="text-xs text-slate-400 block mb-1">Settlement Network</span>
             <span className="text-base font-bold text-cyan-300 block">
-              BOHR Chain (968)
+              BOT Chain (677)
             </span>
           </div>
         </div>

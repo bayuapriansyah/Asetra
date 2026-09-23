@@ -21,9 +21,9 @@ export default function SettingsPage() {
   const [copiedAddr, setCopiedAddr] = useState(false);
   const [copiedContract, setCopiedContract] = useState(false);
 
-  const explorerBase = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.bohr.life";
-  const chainId = process.env.NEXT_PUBLIC_BOT_CHAIN_ID || "968";
-  const rpcUrl = process.env.NEXT_PUBLIC_BOT_RPC_URL || "https://rpc.bohr.life";
+  const explorerBase = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.botchain.ai";
+  const chainId = process.env.NEXT_PUBLIC_BOT_CHAIN_ID || "677";
+  const rpcUrl = process.env.NEXT_PUBLIC_BOT_RPC_URL || "https://rpc.botchain.ai";
 
   const copyAddress = () => {
     if (address) {
@@ -112,7 +112,7 @@ export default function SettingsPage() {
 
               <div className="grid grid-cols-3 gap-4 rounded-xl border border-white/[0.06] bg-slate-950/50 p-4 font-mono text-xs">
                 <div>
-                  <div className="text-[11px] text-slate-500 uppercase">BOHR Balance</div>
+                  <div className="text-[11px] text-slate-500 uppercase">BOT Balance</div>
                   <div className="mt-1 text-base font-bold text-white">
                     {balance
                       ? `${(Number(balance.value) / 10 ** balance.decimals).toFixed(4)} ${balance.symbol}`
@@ -130,7 +130,7 @@ export default function SettingsPage() {
                 <div>
                   <div className="text-[11px] text-slate-500 uppercase">Active Network</div>
                   <div className="mt-1 text-base font-bold text-cyan-400">
-                    {chain?.name || "BOT Chain Testnet"}
+                    {chain?.name || "BOT Chain"}
                   </div>
                 </div>
               </div>
@@ -150,7 +150,7 @@ export default function SettingsPage() {
           <div className="space-y-3 text-xs font-mono">
             <div className="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
               <span className="text-slate-400">Network Name</span>
-              <span className="font-bold text-white">BOT Chain Testnet</span>
+              <span className="font-bold text-white">BOT Chain</span>
             </div>
 
             <div className="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
@@ -227,17 +227,17 @@ export default function SettingsPage() {
           <div className="mb-4 flex items-center justify-between border-b border-white/[0.06] pb-3">
             <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
               <Droplets className="h-4 w-4 text-cyan-400" />
-              <span>Testnet Faucet</span>
+              <span>Faucet</span>
             </div>
           </div>
-          <p className="text-xs text-slate-400 mb-4">Get free BOHR testnet tokens for development and testing.</p>
+          <p className="text-xs text-slate-400 mb-4">Get BOT tokens for gas fees on BOT Chain.</p>
           <a
             href="https://faucet.botchain.ai/basic"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-colors shadow-sm"
           >
-            Request Testnet Tokens <ExternalLink className="h-3.5 w-3.5" />
+            Request Tokens <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </div>
       </div>

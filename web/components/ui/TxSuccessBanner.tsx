@@ -2,7 +2,7 @@
 
 import { ExternalLink, CheckCircle2, X } from "lucide-react";
 
-const EXPLORER_BASE = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.bohr.life";
+const EXPLORER_BASE = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.botchain.ai";
 
 export function TxSuccessBanner({
   txHash,
