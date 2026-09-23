@@ -223,7 +223,7 @@ export default function ActivityPage() {
             </span>
           </div>
           <p className="mt-1 text-sm text-slate-400">
-            Real-time event stream from Asetra protocol smart contracts on Bohr Chain.
+            Real-time event stream from Asetra protocol smart contracts on BOT Chain.
           </p>
         </div>
 
@@ -268,7 +268,7 @@ export default function ActivityPage() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-2 text-xs font-mono text-cyan-400 hover:text-cyan-300 transition-colors"
           >
-            <span>Inspect Contract on Bohr Scan</span>
+            <span>Inspect Contract on BOT Scan</span>
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </motion.div>

@@ -172,7 +172,7 @@ function TradingActivityChart({
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [directBuys, setDirectBuys] = useState(0);
   const [secondaryTrades, setSecondaryTrades] = useState(0);
-  const [chartPoints, setChartPoints] = useState<{ idx: number; time: string; cumulative: number; volumeBohr: string; percentFunded: string }[]>([]);
+  const [chartPoints, setChartPoints] = useState<{ idx: number; time: string; cumulative: number; volumeBOT: string; percentFunded: string }[]>([]);
   const ASETRA_ADDRESS = useAsetraAddress();
 
   const supply = tokenSupply > 0 ? tokenSupply : 10000;
@@ -244,7 +244,7 @@ function TradingActivityChart({
 
         // Build cumulative chart points from events
         const now = Math.floor(Date.now() / 1000);
-        const points: { idx: number; time: string; cumulative: number; volumeBohr: string; percentFunded: string }[] = [];
+        const points: { idx: number; time: string; cumulative: number; volumeBOT: string; percentFunded: string }[] = [];
 
         // Start point at createdAt
         const startDate = new Date(baseTs * 1000);
@@ -253,7 +253,7 @@ function TradingActivityChart({
           time: startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
             `, ${startDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}`,
           cumulative: 0,
-          volumeBohr: "0.00",
+          volumeBOT: "0.00",
           percentFunded: "0.0",
         });
 
@@ -263,7 +263,7 @@ function TradingActivityChart({
           const evt = allEvents[i];
           cumulativeUnits += evt.units;
           const dateObj = new Date(evt.timestamp * 1000);
-          const volumeBohr = (evt.units * price).toFixed(2);
+          const volumeBOT = (evt.units * price).toFixed(2);
           const percentFunded = ((cumulativeUnits / supply) * 100).toFixed(1);
 
           points.push({
@@ -271,7 +271,7 @@ function TradingActivityChart({
             time: dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
               `, ${dateObj.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}`,
             cumulative: cumulativeUnits,
-            volumeBohr,
+            volumeBOT,
             percentFunded,
           });
         }
@@ -285,7 +285,7 @@ function TradingActivityChart({
             time: nowDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
               `, ${nowDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}`,
             cumulative: soldUnits,
-            volumeBohr: (finalVolume * price).toFixed(2),
+            volumeBOT: (finalVolume * price).toFixed(2),
             percentFunded: ((soldUnits / supply) * 100).toFixed(1),
           });
         }
@@ -302,13 +302,13 @@ function TradingActivityChart({
               idx: 0,
               time: startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
                 `, ${startDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}`,
-              cumulative: 0, volumeBohr: "0.00", percentFunded: "0.0",
+              cumulative: 0, volumeBOT: "0.00", percentFunded: "0.0",
             },
             {
               idx: 1,
               time: nowDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
                 `, ${nowDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}`,
-              cumulative: 0, volumeBohr: "0.00", percentFunded: "0.0",
+              cumulative: 0, volumeBOT: "0.00", percentFunded: "0.0",
             },
           ]);
         }
@@ -466,7 +466,7 @@ function TradingActivityChart({
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-slate-400">Volume:</span>
-                <span className="font-bold text-cyan-300">{activePoint.volumeBohr} tUSDT</span>
+                <span className="font-bold text-cyan-300">{activePoint.volumeBOT} tUSDT</span>
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-slate-400">Funded:</span>
@@ -954,7 +954,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                           <CheckCircle2 className="h-4 w-4" /> Position Active
                         </div>
                         <p className="text-xs text-slate-300 leading-relaxed">
-                          This asset has completed primary tokenization and is generating real on-chain yield on Bohr Chain.
+                          This asset has completed primary tokenization and is generating real on-chain yield on BOT Chain.
                         </p>
                       </div>
 
@@ -982,7 +982,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                       <Landmark className="h-4 w-4" /> 60% Max Safe LTV
                     </div>
                     <p className="text-xs text-slate-300 leading-relaxed">
-                      Borrow credit against your RWA positions on Bohr Testnet without liquidating token ownership.
+                      Borrow credit against your RWA positions on BOT Chain Testnet without liquidating token ownership.
                     </p>
                   </div>
 

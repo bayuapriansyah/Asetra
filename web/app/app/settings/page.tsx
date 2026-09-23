@@ -130,7 +130,7 @@ export default function SettingsPage() {
                 <div>
                   <div className="text-[11px] text-slate-500 uppercase">Active Network</div>
                   <div className="mt-1 text-base font-bold text-cyan-400">
-                    {chain?.name || "Bohr Chain Testnet"}
+                    {chain?.name || "BOT Chain Testnet"}
                   </div>
                 </div>
               </div>
@@ -150,7 +150,7 @@ export default function SettingsPage() {
           <div className="space-y-3 text-xs font-mono">
             <div className="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
               <span className="text-slate-400">Network Name</span>
-              <span className="font-bold text-white">Bohr Chain Testnet</span>
+              <span className="font-bold text-white">BOT Chain Testnet</span>
             </div>
 
             <div className="flex items-center justify-between py-1.5 border-b border-white/[0.04]">

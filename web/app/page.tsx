@@ -34,7 +34,7 @@ import {
 const stats = [
   { value: "$10.4M+", label: "Volume processed" },
   { value: "8.4–14.2%", label: "Target APY range" },
-  { value: "< 1.5s", label: "Bohr block finality" },
+  { value: "< 1.5s", label: "BOT block finality" },
   { value: "100%", label: "On-chain state machine" },
 ];
 
@@ -62,7 +62,7 @@ const assetClasses = [
     tag: "RECEIVABLES",
     apy: "9.6%",
     description:
-      "Trade receivables with cryptographic proof of counterparty and immutable document hashes on Bohr Chain.",
+      "Trade receivables with cryptographic proof of counterparty and immutable document hashes on BOT Chain.",
   },
   {
     name: "EquipmentFi",
@@ -272,7 +272,7 @@ export default function LandingPage() {
               <div className="inline-flex items-center gap-2.5 rounded-full border border-[rgba(100,160,255,0.15)] bg-[rgba(255,255,255,0.04)] px-4 py-1.5">
                 <span className="lp-pulse h-2 w-2 rounded-full bg-[#4a9eff]" />
                 <span className="text-[11px] font-bold tracking-[0.16em] text-[#4a9eff] uppercase" style={{ fontFamily: "var(--font-display)" }}>
-                  Live on Bohr Testnet — Chain 968
+                  Live on BOT Chain Testnet — Chain 968
                 </span>
               </div>
 
@@ -616,7 +616,7 @@ export default function LandingPage() {
                 <span className="lp-text-gradient italic">on your balance sheet.</span>
               </h2>
               <p className="mt-5 text-sm sm:text-base text-[rgba(255,255,255,0.45)] max-w-xl mx-auto">
-                Connect your Web3 wallet and interact directly with the Asetra state machine on Bohr Testnet — no intermediaries, no custodians.
+                Connect your Web3 wallet and interact directly with the Asetra state machine on BOT Chain Testnet — no intermediaries, no custodians.
               </p>
               <div className="mt-9 flex flex-wrap justify-center gap-4">
                 <Link href="/app" className="lp-btn-primary">
@@ -656,8 +656,24 @@ export default function LandingPage() {
               </Link>
             </div>
           </div>
-          <p className="mt-10 border-t border-[rgba(100,160,255,0.08)] pt-8 text-center text-[11px] leading-relaxed text-[rgba(255,255,255,0.2)] max-w-3xl mx-auto">
-            Asetra is an experimental protocol deployed on Bohr EVM Testnet (Chain ID: 968).
+
+          {/* BOT Chain Branding */}
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 border-t border-[rgba(100,160,255,0.08)] pt-8">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[rgba(255,255,255,0.25)]">Built on</span>
+            <div className="flex items-center gap-4">
+              <a href="https://botchain.ai" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2.5 transition">
+                <img src="/botchain.png" alt="BOT Chain" className="h-7 w-auto object-contain opacity-70 group-hover:opacity-100 transition" />
+                <span className="text-sm font-bold text-[rgba(255,255,255,0.45)] group-hover:text-white transition" style={{ fontFamily: "var(--font-display)" }}>BOT Chain</span>
+              </a>
+              <span className="text-[rgba(255,255,255,0.15)]">&bull;</span>
+              <a href="https://scan.botchain.ai" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[rgba(255,255,255,0.35)] hover:text-[#4a9eff] transition" style={{ fontFamily: "var(--font-display)" }}>
+                Explorer
+              </a>
+            </div>
+          </div>
+
+          <p className="mt-8 text-center text-[11px] leading-relaxed text-[rgba(255,255,255,0.2)] max-w-3xl mx-auto">
+            Asetra is an experimental protocol deployed on BOT Chain Testnet (Chain ID: 968).
             Digital asset offerings involve substantial risk, including illiquidity and total loss of capital.
             Nothing on this page constitutes financial advice or a solicitation to purchase securities.
             Verify every transaction against the official explorer before signing.

@@ -136,7 +136,7 @@ export default function IssuerAssetsPage() {
             <Package className="h-8 w-8" />
           </div>
           <h3 className="text-lg font-black text-white">No Assets Originated Yet</h3>
-          <p className="mt-1 text-sm text-slate-400">You haven&apos;t tokenized any real-world assets on Bohr Chain yet.</p>
+          <p className="mt-1 text-sm text-slate-400">You haven&apos;t tokenized any real-world assets on BOT Chain yet.</p>
           <Link
             href="/app/issuer/create"
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 hover:bg-cyan-300 transition-colors shadow-sm"

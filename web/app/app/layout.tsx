@@ -38,7 +38,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
             <h3 className="text-xl font-bold text-white mb-2">Connect Your Wallet</h3>
             <p className="text-sm text-slate-400 mb-6">
-              Connect your Web3 wallet on Bohr Chain Testnet to continue.
+              Connect your Web3 wallet on BOT Chain Testnet to continue.
             </p>
             <p className="text-xs font-mono text-cyan-400">
               Click &quot;Connect Wallet&quot; in the navigation bar above.

@@ -256,7 +256,7 @@ export default function OverviewPage() {
           </div>
           <h3 className="text-xl font-bold text-white mb-2">Connect Your Wallet</h3>
           <p className="mx-auto max-w-md text-sm text-slate-400 mb-6">
-            Connect your Web3 wallet on Bohr Chain Testnet to continue.
+            Connect your Web3 wallet on BOT Chain Testnet to continue.
           </p>
           <div className="inline-block">
             <p className="text-xs font-mono text-cyan-400">Click &quot;Connect Wallet&quot; in the navigation bar above.</p>
@@ -583,7 +583,7 @@ export default function OverviewPage() {
                 <div className="mb-6 flex items-center justify-between border-b border-white/[0.06] pb-4">
                   <div>
                     <h2 className="text-lg font-bold text-white">Active Positions</h2>
-                    <p className="text-xs text-slate-400">Your tokenized RWA holdings across Bohr Chain</p>
+                    <p className="text-xs text-slate-400">Your tokenized RWA holdings across BOT Chain</p>
                   </div>
                   <span className="rounded-full bg-slate-800/80 border border-white/[0.08] px-2.5 py-1 text-xs font-mono text-slate-300">
                     {positions.length} {positions.length === 1 ? "position" : "positions"}

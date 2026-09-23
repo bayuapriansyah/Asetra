@@ -202,7 +202,7 @@ export function Navbar() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
-              <span className="font-medium text-slate-200">Bohr</span>
+              <span className="font-medium text-slate-200">BOT Chain</span>
               <span className="text-slate-500">· 968</span>
             </div>
 
@@ -375,7 +375,7 @@ export function Navbar() {
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 mb-2">
-                  Programmable RWA state engine on Bohr Chain.
+                  Programmable RWA state engine on BOT Chain.
                 </p>
                 <a
                   href="https://scan.bohr.life"

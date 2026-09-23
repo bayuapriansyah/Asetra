@@ -160,7 +160,7 @@ export function Sidebar() {
               </span>
             </div>
             <p className="text-[11px] text-slate-400 mb-2">
-              Programmable RWA state engine running on Bohr Chain.
+              Programmable RWA state engine running on BOT Chain.
             </p>
             <a
               href="https://scan.bohr.life"

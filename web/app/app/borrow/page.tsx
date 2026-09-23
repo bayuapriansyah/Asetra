@@ -505,7 +505,7 @@ export default function BorrowPage() {
                   <TxSuccessBanner
                     txHash={txHash || null}
                     onDismiss={() => reset()}
-                    message="Credit facility transaction confirmed on Bohr Chain!"
+                    message="Credit facility transaction confirmed on BOT Chain!"
                   />
                 )}
               </div>

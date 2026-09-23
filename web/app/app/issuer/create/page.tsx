@@ -237,7 +237,7 @@ export default function CreateAssetPage() {
           </div>
           <h2 className="text-xl font-black text-white">Wallet Connection Required</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Connect your Web3 wallet to sign asset origination transactions on the Bohr Testnet.
+            Connect your Web3 wallet to sign asset origination transactions on the BOT Chain Testnet.
           </p>
         </div>
       ) : (
@@ -439,7 +439,7 @@ export default function CreateAssetPage() {
                   </span>
                 ) : isConfirming ? (
                   <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin" /> Confirming on Bohr Testnet...
+                    <Loader2 className="h-5 w-5 animate-spin" /> Confirming on BOT Chain Testnet...
                   </span>
                 ) : (
                   "Create & Originate RWA"
@@ -465,7 +465,7 @@ export default function CreateAssetPage() {
                       target="_blank"
                       className="flex items-center gap-1.5 text-cyan-400 hover:underline"
                     >
-                      Bohr Explorer <ExternalLink className="h-3.5 w-3.5" />
+                      BOT Explorer <ExternalLink className="h-3.5 w-3.5" />
                     </Link>
                   )}
                   <Link

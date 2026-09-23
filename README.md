@@ -2,17 +2,17 @@
 
 ### Real-world assets, made programmable.
 
-AssetFlow is a lifecycle-driven RWA platform that transforms verified real-world assets — such as invoices — into programmable on-chain positions. Instead of stopping at tokenization, AssetFlow continues the financial lifecycle through investment, trading, yield, collateral, borrowing, maturity, and settlement.
+Asetra is a lifecycle-driven RWA platform that transforms verified real-world assets — such as invoices — into programmable on-chain positions. Instead of stopping at tokenization, Asetra continues the financial lifecycle through investment, trading, yield, collateral, borrowing, maturity, and settlement.
 
 > **Tokenization is only the beginning.**
 
-[Contract](https://scan.bohr.life/address/0xb1a6b9FE899fb8Bba4235Ec52181156199Df0b21) · [BOTScan](https://scan.bohr.life) · [GitHub](https://github.com/bayuapriansyah/AssetFlow)
+[Contract](https://scan.bohr.life/address/0x13630987Dc4E86277204ED23a98a95D9D3f927bE) · [BOTScan](https://scan.bohr.life) · [GitHub](https://github.com/bayuapriansyah/AssetFlow)
 
 ---
 
 ## Overview
 
-Most RWA platforms stop at turning an asset into a token. AssetFlow goes further.
+Most RWA platforms stop at turning an asset into a token. Asetra goes further.
 
 Once a real-world asset is verified and tokenized on-chain, it enters a **programmable financial lifecycle**. Every state transition is enforced by a smart contract. Every financial action — invest, trade, collateralize, borrow, yield, settle — is governed by the asset's current lifecycle state.
 
@@ -46,7 +46,7 @@ Investors need to know: Is this asset verified? Funded? Active? Mature? Settled?
 
 ## Solution
 
-AssetFlow models each real-world asset as a **lifecycle state machine**:
+Asetra models each real-world asset as a **lifecycle state machine**:
 
 ```text
 REAL-WORLD ASSET
@@ -214,7 +214,7 @@ Every transaction is recorded on BOT Chain and verifiable on the explorer.
 
 ## Why Blockchain?
 
-AssetFlow uses blockchain as the execution and source-of-truth layer for financial state.
+Asetra uses blockchain as the execution and source-of-truth layer for financial state.
 
 ### On-chain
 
@@ -241,10 +241,10 @@ Blockchain does not independently verify whether a physical invoice is authentic
 
 ```mermaid
 flowchart TD
-    A[User] -->|Connect Wallet| B[AssetFlow Frontend]
+    A[User] -->|Connect Wallet| B[Asetra Frontend]
     B -->|wagmi + viem| C[MetaMask]
     C -->|Sign & Send| D[BOT Chain Testnet]
-    D -->|Execute| E[AssetFlow.sol]
+    D -->|Execute| E[Asetra.sol]
     D -->|Payment| F[tUSDT Token]
     E -->|Events| G[BOT Chain Explorer]
 ```
@@ -255,14 +255,14 @@ flowchart TD
 | **wagmi + viem** | Web3 provider, contract reads/writes, transaction receipts |
 | **MetaMask** | Wallet, signing, broadcasting |
 | **BOT Chain** | EVM execution, state storage, event emission |
-| **AssetFlow.sol** | Lifecycle logic, access control, financial operations |
+| **Asetra.sol** | Lifecycle logic, access control, financial operations |
 | **tUSDT** | ERC-20 payment token (6 decimals) |
 
 ---
 
 ## Smart Contract
 
-**AssetFlow.sol** — Single contract managing all assets, positions, and financial operations.
+**Asetra** — Single contract managing all assets, positions, and financial operations.
 
 ### Lifecycle Functions
 
@@ -364,28 +364,40 @@ healthy = healthFactor ≥ 100
 
 ## Deployment
 
+### Testnet (BOT Chain Testnet)
+
 | Property | Value |
 |----------|-------|
 | Network | BOT Chain Testnet |
-| Contract | AssetFlow.sol |
-| Address | `0xb1a6b9FE899fb8Bba4235Ec52181156199Df0b21` |
+| Contract | Asetra.sol |
+| Address | `0x13630987Dc4E86277204ED23a98a95D9D3f927bE` |
 | tUSDT | `0x75edC9335175Fc0552D51D48439F229c10420fe3` |
-| Explorer | [View on BOTScan](https://scan.bohr.life/address/0xb1a6b9FE899fb8Bba4235Ec52181156199Df0b21) |
+| Explorer | [View on BOTScan](https://scan.bohr.life/address/0x13630987Dc4E86277204ED23a98a95D9D3f927bE) |
+
+### Mainnet (BOT Chain Mainnet)
+
+| Property | Value |
+|----------|-------|
+| Network | BOT Chain Mainnet (Chain ID 677) |
+| Contract | Asetra.sol |
+| Address | `TBD — deploying soon` |
+| tUSDT | `0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C` |
+| Explorer | [BOT Chain Explorer](https://scan.botchain.ai) |
 
 ### Deployment Workflow
 
 ```text
-AssetFlow.sol
+Asetra.sol
     ↓
 Foundry (compile + test)
     ↓
-Remix IDE (deploy via MetaMask)
+forge create (deploy via CLI)
     ↓
-BOT Chain Testnet
+BOT Chain Testnet / Mainnet
     ↓
 Contract Address
     ↓
-web/.env.local (NEXT_PUBLIC_ASSETFLOW_ADDRESS)
+web/.env.local (NEXT_PUBLIC_ASETRA_ADDRESS)
     ↓
 Frontend reads contract
 ```
@@ -425,7 +437,7 @@ Create `web/.env.local`:
 NEXT_PUBLIC_BOT_CHAIN_ID=968
 NEXT_PUBLIC_BOT_RPC_URL=https://rpc.bohr.life
 NEXT_PUBLIC_BOT_EXPLORER_URL=https://scan.bohr.life
-NEXT_PUBLIC_ASSETFLOW_ADDRESS=0xb1a6b9FE899fb8Bba4235Ec52181156199Df0b21
+NEXT_PUBLIC_ASETRA_ADDRESS=0x13630987Dc4E86277204ED23a98a95D9D3f927bE
 NEXT_PUBLIC_TUSDT_ADDRESS=0x75edC9335175Fc0552D51D48439F229c10420fe3
 ```
 
@@ -454,7 +466,7 @@ forge test
 ```
 
 ```text
-Suite result: ok. 28 passed; 0 failed; 0 skipped
+Suite result: ok. 40 passed; 0 failed; 0 skipped
 ```
 
 **Coverage:**
@@ -470,6 +482,9 @@ Suite result: ok. 28 passed; 0 failed; 0 skipped
 | Borrowing + repayment | ✅ |
 | Yield calculation | ✅ |
 | Maturity + settlement | ✅ |
+| Payment-Adjusted Receivable Claim (CPI) | ✅ |
+| Claim cap at settlement pool | ✅ |
+| totalRaised persistence after withdraw | ✅ |
 
 ### Frontend Build
 
@@ -485,14 +500,14 @@ All pages compile clean (HTTP 200).
 ## Project Structure
 
 ```text
-AssetFlow/
+Asetra/
 ├── contracts/
 │   ├── src/
-│   │   └── AssetFlow.sol              # Main smart contract (539 lines)
+│   │   └── Asetra.sol               # Main smart contract (~680 lines)
 │   ├── test/
-│   │   └── AssetFlow.t.sol            # 28 Foundry tests
-│   ├── lib/                            # Foundry dependencies
-│   └── foundry.toml                    # Solidity 0.8.20, optimizer 200
+│   │   └── Asetra.t.sol             # 40 Foundry tests
+│   ├── lib/                          # Foundry dependencies
+│   └── foundry.toml                  # Solidity 0.8.20, optimizer 200
 │
 ├── web/
 │   ├── app/
@@ -530,7 +545,7 @@ AssetFlow/
 │   ├── types/asset.ts                  # TypeScript types
 │   └── .env.local                      # Environment config
 │
-├── AssetFlow_PRD_v1.1.md               # Product Requirements Document
+├── Asetra_PRD_v1.1.md                 # Product Requirements Document
 └── README.md
 ```
 
