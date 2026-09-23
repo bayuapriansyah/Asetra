@@ -1,29 +1,29 @@
 /* ── Multi-chain contract addresses ──────────────────────────────── */
 const CONTRACTS: Record<number, { asetra: `0x${string}`; tusdt: `0x${string}` }> = {
   968: { // BOT Chain Testnet
-    asetra: (process.env.NEXT_PUBLIC_ASETRA_ADDRESS || "0x954Eac94dAB99fA988918bed1ab2E63ff2E41E2a") as `0x${string}`,
-    tusdt: (process.env.NEXT_PUBLIC_TUSDT_ADDRESS || "0x75edC9335175Fc0552D51D48439F229c10420fe3") as `0x${string}`,
+    asetra: "0x13630987Dc4E86277204ED23a98a95D9D3f927bE" as `0x${string}`,
+    tusdt: "0x75edC9335175Fc0552D51D48439F229c10420fe3" as `0x${string}`,
   },
   677: { // BOT Chain Mainnet
-    asetra: "0x1893bd849B656fE9eBFf8392340C30FE04268C37" as `0x${string}`,
-    tusdt: "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C" as `0x${string}`,
+    asetra: (process.env.NEXT_PUBLIC_ASETRA_ADDRESS || "0x1893bd849B656fE9eBFf8392340C30FE04268C37") as `0x${string}`,
+    tusdt: (process.env.NEXT_PUBLIC_TUSDT_ADDRESS || "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C") as `0x${string}`,
   },
 };
 
 export function getAsetraAddress(chainId: number): `0x${string}` {
-  return CONTRACTS[chainId]?.asetra ?? CONTRACTS[968].asetra;
+  return CONTRACTS[chainId]?.asetra ?? CONTRACTS[677].asetra;
 }
 
 export function getTusdtAddress(chainId: number): `0x${string}` {
-  return CONTRACTS[chainId]?.tusdt ?? CONTRACTS[968].tusdt;
+  return CONTRACTS[chainId]?.tusdt ?? CONTRACTS[677].tusdt;
 }
 
 /** @deprecated Use getAsetraAddress(chainId) instead */
-export const ASETRA_ADDRESS = CONTRACTS[968].asetra;
+export const ASETRA_ADDRESS = CONTRACTS[677].asetra;
 /** @deprecated Use getAsetraAddress(chainId) instead */
 export const ASSETFLOW_ADDRESS = ASETRA_ADDRESS;
 /** @deprecated Use getTusdtAddress(chainId) instead */
-export const TUSDT_ADDRESS = CONTRACTS[968].tusdt;
+export const TUSDT_ADDRESS = CONTRACTS[677].tusdt;
 
 export const TUSDT_ABI = [
   { type: "function", name: "balanceOf", inputs: [{ name: "account", type: "address" }], outputs: [{ name: "", type: "uint256" }], stateMutability: "view" },

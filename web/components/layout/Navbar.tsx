@@ -203,7 +203,7 @@ export function Navbar() {
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
               <span className="font-medium text-slate-200">BOT Chain</span>
-              <span className="text-slate-500">· 968</span>
+              <span className="text-slate-500">· 677</span>
             </div>
 
             {/* Role Switcher */}

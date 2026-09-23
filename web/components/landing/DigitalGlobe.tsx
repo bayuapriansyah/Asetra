@@ -385,7 +385,7 @@ export default function DigitalGlobe() {
         }}
       >
         <div className="select-none p-4 text-right whitespace-pre leading-none">
-          {`CHAIN_ID:968\nPROTO::ASETRA\nAUDIT::PASSED\n[CONSENSUS]\n4421 8888\n0110 1001\nNODE_SYNC::1`}
+          {`CHAIN_ID:677\nPROTO::ASETRA\nAUDIT::PASSED\n[CONSENSUS]\n4421 8888\n0110 1001\nNODE_SYNC::1`}
         </div>
       </div>
 

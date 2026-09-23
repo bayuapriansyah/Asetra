@@ -180,7 +180,7 @@ export default function HeroVisual() {
             <span style={{ fontSize:8, fontWeight:800, color:"rgba(255,255,255,.3)", letterSpacing:"0.16em", textTransform:"uppercase", fontFamily:"Space Grotesk,sans-serif" }}>Live · BOT Chain</span>
           </div>
           <div style={{ display:"flex", gap:14 }}>
-            {([["Vol","$10.4M","#818cf8"],["Chain","968","#60a5fa"],["Gas","~0","#34d399"]] as [string,string,string][]).map(([l,v,c])=>(
+            {([["Vol","$10.4M","#818cf8"],["Chain","677","#60a5fa"],["Gas","~0","#34d399"]] as [string,string,string][]).map(([l,v,c])=>(
               <div key={l} style={{ display:"flex", alignItems:"center", gap:4 }}>
                 <span style={{ fontSize:7, fontWeight:700, color:"rgba(255,255,255,.25)", letterSpacing:"0.1em", textTransform:"uppercase", fontFamily:"Space Grotesk,sans-serif" }}>{l}</span>
                 <span style={{ fontSize:10, fontWeight:900, color:c, fontFamily:"Space Grotesk,sans-serif" }}>{v}</span>
