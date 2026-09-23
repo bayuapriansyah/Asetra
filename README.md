@@ -380,9 +380,9 @@ healthy = healthFactor ≥ 100
 |----------|-------|
 | Network | BOT Chain Mainnet (Chain ID 677) |
 | Contract | Asetra.sol |
-| Address | `TBD — deploying soon` |
+| Address | `0x1893bd849B656fE9eBFf8392340C30FE04268C37` |
 | tUSDT | `0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C` |
-| Explorer | [BOT Chain Explorer](https://scan.botchain.ai) |
+| Explorer | [View on BOT Scan](https://scan.botchain.ai/address/0x1893bd849B656fE9eBFf8392340C30FE04268C37) |
 
 ### Deployment Workflow
 

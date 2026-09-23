@@ -5,7 +5,7 @@ const CONTRACTS: Record<number, { asetra: `0x${string}`; tusdt: `0x${string}` }>
     tusdt: (process.env.NEXT_PUBLIC_TUSDT_ADDRESS || "0x75edC9335175Fc0552D51D48439F229c10420fe3") as `0x${string}`,
   },
   677: { // BOT Chain Mainnet
-    asetra: "0x0000000000000000000000000000000000000000" as `0x${string}`, // TODO: deploy & replace
+    asetra: "0x1893bd849B656fE9eBFf8392340C30FE04268C37" as `0x${string}`,
     tusdt: "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C" as `0x${string}`,
   },
 };
