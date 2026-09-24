@@ -1,12 +1,45 @@
-# Asetra
+<p align="center">
+  <img src="./web/public/Asetra.png" width="120" alt="Asetra Logo" />
+</p>
 
-### Real-world assets, made programmable.
+<h1 align="center">Asetra</h1>
+
+<p align="center">
+  <b>Real-world assets, made programmable.</b>
+</p>
 
 Asetra is a lifecycle-driven RWA platform that transforms verified real-world assets — such as invoices — into programmable on-chain positions. Instead of stopping at tokenization, Asetra continues the financial lifecycle through investment, trading, yield, collateral, borrowing, maturity, and settlement.
 
 > **Tokenization is only the beginning.**
 
-[Contract](https://scan.bohr.life/address/0x13630987Dc4E86277204ED23a98a95D9D3f927bE) · [BOTScan](https://scan.bohr.life) · [GitHub](https://github.com/bayuapriansyah/AssetFlow)
+<p align="center">
+  <a href="https://www.asetra-rwa.my.id">Live</a> ·
+  <a href="https://scan.botchain.ai/address/0x1893bd849B656fE9eBFf8392340C30FE04268C37">Contract</a> ·
+  <a href="https://scan.botchain.ai">BOTScan</a> ·
+  <a href="https://github.com/bayuapriansyah/Asetra">GitHub</a>
+</p>
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Problem](#problem)
+- [Solution](#solution)
+- [Main Feature — Programmable RWA Lifecycle](#main-feature--programmable-rwa-lifecycle)
+- [Primary Use Case — Invoice Financing](#primary-use-case--invoice-financing)
+- [Demo Flow](#demo-flow)
+- [Features](#features)
+- [Why Blockchain?](#why-blockchain)
+- [Architecture](#architecture)
+- [Smart Contract](#smart-contract)
+- [Yield Model](#yield-model)
+- [Tech Stack](#tech-stack)
+- [BOT Chain Configuration](#bot-chain-configuration)
+- [Deployment](#deployment)
+- [Local Development](#local-development)
+- [Testing](#testing)
+- [Project Structure](#project-structure)
 
 ---
 
@@ -353,12 +386,16 @@ healthy = healthFactor ≥ 100
 
 | Parameter | Value |
 |-----------|-------|
-| Network | BOT Chain Testnet |
-| Chain ID | 968 |
-| RPC | `https://rpc.bohr.life` |
-| Explorer | `https://scan.bohr.life` |
+| Network | BOT Chain Mainnet |
+| Chain ID | 677 |
+| RPC | `https://rpc.botchain.ai` |
+| Explorer | `https://scan.botchain.ai` |
 | Faucet | `https://faucet.botchain.ai/basic` |
 | Native Token | BOT |
+
+Testnet is also supported (Chain ID 968, RPC `https://rpc.bohr.life`, Explorer `https://scan.bohr.life`).
+
+Testnet is also supported (Chain ID 968, RPC `https://rpc.bohr.life`, Explorer `https://scan.bohr.life`).
 
 ---
 
@@ -415,8 +452,8 @@ Frontend reads contract
 ### Frontend
 
 ```bash
-git clone https://github.com/bayuapriansyah/AssetFlow.git
-cd AssetFlow/web
+git clone https://github.com/bayuapriansyah/Asetra.git
+cd Asetra/web
 npm install
 npm run dev
 ```
@@ -434,25 +471,24 @@ forge test
 Create `web/.env.local`:
 
 ```env
-NEXT_PUBLIC_BOT_CHAIN_ID=968
-NEXT_PUBLIC_BOT_RPC_URL=https://rpc.bohr.life
-NEXT_PUBLIC_BOT_EXPLORER_URL=https://scan.bohr.life
-NEXT_PUBLIC_ASETRA_ADDRESS=0x13630987Dc4E86277204ED23a98a95D9D3f927bE
-NEXT_PUBLIC_TUSDT_ADDRESS=0x75edC9335175Fc0552D51D48439F229c10420fe3
+NEXT_PUBLIC_BOT_CHAIN_ID=677
+NEXT_PUBLIC_BOT_RPC_URL=https://rpc.botchain.ai
+NEXT_PUBLIC_BOT_EXPLORER_URL=https://scan.botchain.ai
+NEXT_PUBLIC_ASETRA_ADDRESS=0x1893bd849B656fE9eBFf8392340C30FE04268C37
+NEXT_PUBLIC_TUSDT_ADDRESS=0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C
 ```
 
 > Never commit `.env.local` with real keys or secrets.
 
 ### MetaMask Setup
 
-1. Add BOT Chain Testnet:
-   - Network Name: `BOT Chain Testnet`
-   - RPC URL: `https://rpc.bohr.life`
-   - Chain ID: `968`
+1. Add BOT Chain Mainnet:
+   - Network Name: `BOT Chain`
+   - RPC URL: `https://rpc.botchain.ai`
+   - Chain ID: `677`
    - Currency Symbol: `BOT`
-   - Block Explorer: `https://scan.bohr.life`
-2. Get testnet BOT from [faucet](https://faucet.botchain.ai/basic)
-3. Get testnet tUSDT from faucet (1,000 tUSDT per claim)
+   - Block Explorer: `https://scan.botchain.ai`
+2. Get BOT from [faucet](https://faucet.botchain.ai/basic) or exchange
 
 ---
 
@@ -548,18 +584,6 @@ Asetra/
 ├── Asetra_PRD_v1.1.md                 # Product Requirements Document
 └── README.md
 ```
-
----
-
-## Limitations
-
-- Single contract manages all assets (not separate ERC-20 per asset)
-- No off-chain document storage or AI extraction in MVP
-- Yield uses simple annual calculation (not compound)
-- Settlement emits event but does not automatically transfer principal back
-- No institutional KYC/AML compliance layer
-- No oracle infrastructure for real-world price feeds
-- Role switching is UI-level (contract enforces admin + issuer ownership only)
 
 ---
 
