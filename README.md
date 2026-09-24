@@ -395,8 +395,6 @@ healthy = healthFactor ≥ 100
 
 Testnet is also supported (Chain ID 968, RPC `https://rpc.bohr.life`, Explorer `https://scan.bohr.life`).
 
-Testnet is also supported (Chain ID 968, RPC `https://rpc.bohr.life`, Explorer `https://scan.bohr.life`).
-
 ---
 
 ## Deployment
