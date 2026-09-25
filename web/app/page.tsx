@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Reveal } from "@/components/landing/Reveal";
 import { RevealCard } from "@/components/landing/RevealCard";
 import { LandingNavbar } from "@/components/landing/LandingNavbar";
+import { getAsetraAddress } from "@/config/contracts";
 import RotatingEarth from "@/components/ui/wireframe-dotted-globe";
 import { SpotlightCard } from "spotlight-card";
 
@@ -214,6 +215,9 @@ function AbstractSVG() {
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
+
+const EXPLORER_BASE = process.env.NEXT_PUBLIC_BOT_EXPLORER_URL || "https://scan.botchain.ai";
+const CONTRACT_URL = `${EXPLORER_BASE}/address/${getAsetraAddress(677)}`;
 
 export default function LandingPage() {
   const [timelineProgress, setTimelineProgress] = useState(0);
@@ -643,7 +647,7 @@ export default function LandingPage() {
               <span className="font-bold text-xl text-white" style={{ fontFamily: "var(--font-display)" }}>Asetra Protocol</span>
             </div>
             <div className="flex items-center gap-4 text-xs font-bold text-[rgba(255,255,255,0.35)]" style={{ fontFamily: "var(--font-display)" }}>
-              <a href="https://scan.botchain.ai" target="_blank" rel="noopener noreferrer" className="hover:text-[#4a9eff] transition">
+              <a href={CONTRACT_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#4a9eff] transition">
                 Explorer
               </a>
               <span className="text-[rgba(255,255,255,0.15)]">&bull;</span>
@@ -661,12 +665,12 @@ export default function LandingPage() {
           <div className="mt-8 flex flex-col items-center justify-center gap-3 border-t border-[rgba(100,160,255,0.08)] pt-8">
             <span className="text-[10px] font-mono uppercase tracking-widest text-[rgba(255,255,255,0.25)]">Built on</span>
             <div className="flex items-center gap-4">
-              <a href="https://botchain.ai" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2.5 transition">
+              <a href={CONTRACT_URL} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2.5 transition">
                 <img src="/botchain.png" alt="BOT Chain" className="h-7 w-auto object-contain opacity-70 group-hover:opacity-100 transition" />
                 <span className="text-sm font-bold text-[rgba(255,255,255,0.45)] group-hover:text-white transition" style={{ fontFamily: "var(--font-display)" }}>BOT Chain</span>
               </a>
               <span className="text-[rgba(255,255,255,0.15)]">&bull;</span>
-              <a href="https://scan.botchain.ai" target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[rgba(255,255,255,0.35)] hover:text-[#4a9eff] transition" style={{ fontFamily: "var(--font-display)" }}>
+              <a href={CONTRACT_URL} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[rgba(255,255,255,0.35)] hover:text-[#4a9eff] transition" style={{ fontFamily: "var(--font-display)" }}>
                 Explorer
               </a>
             </div>
