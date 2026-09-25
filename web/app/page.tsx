@@ -665,7 +665,7 @@ export default function LandingPage() {
           <div className="mt-8 flex flex-col items-center justify-center gap-3 border-t border-[rgba(100,160,255,0.08)] pt-8">
             <span className="text-[10px] font-mono uppercase tracking-widest text-[rgba(255,255,255,0.25)]">Built on</span>
             <div className="flex items-center gap-4">
-              <a href={CONTRACT_URL} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2.5 transition">
+              <a href="https://botchain.ai" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2.5 transition">
                 <img src="/botchain.png" alt="BOT Chain" className="h-7 w-auto object-contain opacity-70 group-hover:opacity-100 transition" />
                 <span className="text-sm font-bold text-[rgba(255,255,255,0.45)] group-hover:text-white transition" style={{ fontFamily: "var(--font-display)" }}>BOT Chain</span>
               </a>
