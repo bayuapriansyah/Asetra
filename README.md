@@ -41,6 +41,8 @@ Asetra is a lifecycle-driven RWA platform that transforms verified real-world as
 - [Local Development](#local-development)
 - [Testing](#testing)
 - [Project Structure](#project-structure)
+- [Future Improvements](#future-improvements)
+- [Built For](#built-for)
 
 ---
 
@@ -51,6 +53,10 @@ Most RWA platforms stop at turning an asset into a token. Asetra goes further.
 Once a real-world asset is verified and tokenized on-chain, it enters a **programmable financial lifecycle**. Every state transition is enforced by a smart contract. Every financial action — invest, trade, collateralize, borrow, yield, settle — is governed by the asset's current lifecycle state.
 
 The result: a complete on-chain financial workflow for real-world assets, from creation to settlement.
+
+<p align="center">
+  <img src="docs/screenshots/marketplace.jpg" alt="Asetra Marketplace" width="720" />
+</p>
 
 ---
 
@@ -138,6 +144,10 @@ Each state transition is enforced on-chain. For example:
 
 - `CREATED → SETTLED` is **invalid** and will revert.
 - `LISTED → ACTIVE` only happens automatically when funding target is met.
+
+<p align="center">
+  <img src="docs/screenshots/asset-detail.jpg" alt="Asset detail with lifecycle timeline" width="720" />
+</p>
 
 ### State-Based Actions
 
@@ -228,6 +238,10 @@ Watch an asset come alive.
 
 > **Note:** The demo runs on a single wallet with freely switchable UI roles — pure
 > demo convenience. All authorization is enforced by the smart contract, not the UI.
+
+<p align="center">
+  <img src="docs/screenshots/portofolio-holding-investor.jpg" alt="Investor portfolio holdings" width="720" />
+</p>
 
 Every transaction is recorded on BOT Chain and verifiable on the explorer.
 
@@ -378,12 +392,20 @@ Turn idle RWA positions into liquidity without selling them.
 4. **Health factor** — monitored continuously; unhealthy positions can't withdraw collateral
 5. **Repay** — repaying debt releases the locked collateral
 
+<p align="center">
+  <img src="docs/screenshots/collateral.jpg" alt="Collateral Vault" width="720" />
+</p>
+
 ```text
 creditCapacity = collateralValue × 60%    (max LTV = 60%)
 
 healthFactor = (collateralValue × 10,000) / (borrowed × 60)
 healthy = healthFactor ≥ 100
 ```
+
+<p align="center">
+  <img src="docs/screenshots/borrow.jpg" alt="Credit & Borrowing health factor" width="720" />
+</p>
 
 ---
 
@@ -471,7 +493,7 @@ Frontend reads contract
 
 - Node.js v18+
 - MetaMask browser extension
-- BOT Chain Testnet added to MetaMask
+- BOT Chain Mainnet added to MetaMask
 
 ### Frontend
 
