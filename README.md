@@ -54,9 +54,13 @@ Once a real-world asset is verified and tokenized on-chain, it enters a **progra
 
 The result: a complete on-chain financial workflow for real-world assets, from creation to settlement.
 
-<p align="center">
-  <img src="docs/screenshots/marketplace.jpg" alt="Asetra Marketplace" width="720" />
-</p>
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/marketplace.jpg" alt="Asetra Marketplace" width="700" />
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -145,9 +149,13 @@ Each state transition is enforced on-chain. For example:
 - `CREATED → SETTLED` is **invalid** and will revert.
 - `LISTED → ACTIVE` only happens automatically when funding target is met.
 
-<p align="center">
-  <img src="docs/screenshots/asset-detail.jpg" alt="Asset detail with lifecycle timeline" width="720" />
-</p>
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/asset-detail.jpg" alt="Asset detail with lifecycle timeline" width="700" />
+    </td>
+  </tr>
+</table>
 
 ### State-Based Actions
 
@@ -239,9 +247,13 @@ Watch an asset come alive.
 > **Note:** The demo runs on a single wallet with freely switchable UI roles — pure
 > demo convenience. All authorization is enforced by the smart contract, not the UI.
 
-<p align="center">
-  <img src="docs/screenshots/portofolio-holding-investor.jpg" alt="Investor portfolio holdings" width="720" />
-</p>
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/portofolio-holding-investor.jpg" alt="Investor portfolio holdings" width="700" />
+    </td>
+  </tr>
+</table>
 
 Every transaction is recorded on BOT Chain and verifiable on the explorer.
 
@@ -392,9 +404,13 @@ Turn idle RWA positions into liquidity without selling them.
 4. **Health factor** — monitored continuously; unhealthy positions can't withdraw collateral
 5. **Repay** — repaying debt releases the locked collateral
 
-<p align="center">
-  <img src="docs/screenshots/collateral.jpg" alt="Collateral Vault" width="720" />
-</p>
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/collateral.jpg" alt="Collateral Vault" width="700" />
+    </td>
+  </tr>
+</table>
 
 ```text
 creditCapacity = collateralValue × 60%    (max LTV = 60%)
@@ -403,9 +419,13 @@ healthFactor = (collateralValue × 10,000) / (borrowed × 60)
 healthy = healthFactor ≥ 100
 ```
 
-<p align="center">
-  <img src="docs/screenshots/borrow.jpg" alt="Credit & Borrowing health factor" width="720" />
-</p>
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/borrow.jpg" alt="Credit & Borrowing health factor" width="700" />
+    </td>
+  </tr>
+</table>
 
 ---
 
