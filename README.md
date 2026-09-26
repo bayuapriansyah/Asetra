@@ -43,6 +43,7 @@ Asetra is a lifecycle-driven RWA platform that transforms verified real-world as
 - [Project Structure](#project-structure)
 - [Future Improvements](#future-improvements)
 - [Built For](#built-for)
+- [License](#license)
 
 ---
 
@@ -679,3 +680,9 @@ Asetra/
 **Girl Meets Tech — Build Week Hackathon Vol.2**
 
 Built on BOT Chain (EVM) · Solidity · Next.js · wagmi · viem · Foundry
+
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE).
