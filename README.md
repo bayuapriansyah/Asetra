@@ -159,7 +159,13 @@ Each state transition is enforced on-chain. For example:
 | **Issuer** | Create, tokenize, list, mature, settle assets |
 | **Investor** | Buy tokens, trade P2P, collateralize, borrow, claim yield |
 
-Roles are switchable in the UI for demo purposes. The smart contract enforces `onlyAdmin` and issuer-ownership checks.
+> **⚠️ Role Switcher — demo convenience only**
+>
+> You can switch Admin / Issuer / Investor freely at any time — no login, no permission
+> gate. One wallet plays every role end-to-end so the full demo flow can be run solo.
+> This is intentionally **not** a production access-control model: real authorization is
+> enforced on-chain by the smart contract (`onlyAdmin`, issuer-ownership checks), so
+> changing the UI role never grants capabilities your wallet doesn't hold on-chain.
 
 ---
 
@@ -218,6 +224,9 @@ Watch an asset come alive.
        ↓
 [13] Issuer:  Complete Settlement (lifecycle closes)
 ```
+
+> **Note:** The demo runs on a single wallet with freely switchable UI roles — pure
+> demo convenience. All authorization is enforced by the smart contract, not the UI.
 
 Every transaction is recorded on BOT Chain and verifiable on the explorer.
 
@@ -377,7 +386,7 @@ healthy = healthFactor ≥ 100
 | Wallet | MetaMask |
 | Smart Contract | Solidity 0.8.20 |
 | Contract Tooling | Foundry |
-| Blockchain | BOT Chain Testnet |
+| Blockchain | BOT Chain Mainnet |
 | Payment Token | tUSDT (6 decimals) |
 
 ---
