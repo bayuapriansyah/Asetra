@@ -58,6 +58,8 @@ The result: a complete on-chain financial workflow for real-world assets, from c
   <tr>
     <td align="center">
       <img src="docs/screenshots/marketplace.jpg" alt="Asetra Marketplace" width="700" />
+      <br />
+      <sub><b>Marketplace</b> — listed RWA assets with face value, price, yield, and funding progress</sub>
     </td>
   </tr>
 </table>
@@ -153,6 +155,8 @@ Each state transition is enforced on-chain. For example:
   <tr>
     <td align="center">
       <img src="docs/screenshots/asset-detail.jpg" alt="Asset detail with lifecycle timeline" width="700" />
+      <br />
+      <sub><b>Asset Detail</b> — lifecycle timeline, pricing, and state-based actions for the selected asset</sub>
     </td>
   </tr>
 </table>
@@ -251,6 +255,8 @@ Watch an asset come alive.
   <tr>
     <td align="center">
       <img src="docs/screenshots/portofolio-holding-investor.jpg" alt="Investor portfolio holdings" width="700" />
+      <br />
+      <sub><b>Portfolio Holdings</b> — total invested, current value, accrued yield, claimable proceeds, and collateral locked</sub>
     </td>
   </tr>
 </table>
@@ -408,6 +414,8 @@ Turn idle RWA positions into liquidity without selling them.
   <tr>
     <td align="center">
       <img src="docs/screenshots/collateral.jpg" alt="Collateral Vault" width="700" />
+      <br />
+      <sub><b>Collateral Vault</b> — lock position tokens to unlock borrow capacity without selling</sub>
     </td>
   </tr>
 </table>
@@ -423,6 +431,8 @@ healthy = healthFactor ≥ 100
   <tr>
     <td align="center">
       <img src="docs/screenshots/borrow.jpg" alt="Credit & Borrowing health factor" width="700" />
+      <br />
+      <sub><b>Credit &amp; Borrowing</b> — available credit, live health factor, and the borrow / repay terminal</sub>
     </td>
   </tr>
 </table>
