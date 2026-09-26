@@ -34,6 +34,7 @@ Asetra is a lifecycle-driven RWA platform that transforms verified real-world as
 - [Architecture](#architecture)
 - [Smart Contract](#smart-contract)
 - [Yield Model](#yield-model)
+- [Collateral & Borrowing](#collateral--borrowing)
 - [Tech Stack](#tech-stack)
 - [BOT Chain Configuration](#bot-chain-configuration)
 - [Deployment](#deployment)
@@ -285,7 +286,7 @@ Blockchain does not independently verify whether a physical invoice is authentic
 flowchart TD
     A[User] -->|Connect Wallet| B[Asetra Frontend]
     B -->|wagmi + viem| C[MetaMask]
-    C -->|Sign & Send| D[BOT Chain Testnet]
+    C -->|Sign & Send| D[BOT Chain Mainnet]
     D -->|Execute| E[Asetra.sol]
     D -->|Payment| F[tUSDT Token]
     E -->|Events| G[BOT Chain Explorer]
@@ -330,6 +331,10 @@ flowchart TD
 | `borrow()` | Investor | Borrow tUSDT against collateral |
 | `repay()` | Investor | Repay borrowed tUSDT |
 | `claimYield()` | Investor | Claim accrued yield |
+| `recordPayment()` | Admin | Record real-world cashflow evidence |
+| `fundSettlement()` | Anyone | Fund settlement pool with tUSDT |
+| `claimProceeds()` | Investor | Claim paid proceeds (capped by pool) |
+| `withdrawRaisedFunds()` | Issuer | Withdraw raised investment capital |
 
 ### View Functions
 
@@ -359,7 +364,19 @@ yield = (totalInvested × yieldBps / 10,000) / 365 × daysHeld
 - Minimum 1 day holding required for claimable yield
 - Claimable anytime (does not require maturity)
 
-### Collateral & Borrowing
+---
+
+## Collateral & Borrowing
+
+Turn idle RWA positions into liquidity without selling them.
+
+**Flow:**
+
+1. **Deposit** — lock position tokens in the Collateral Vault
+2. **Credit capacity** — each position unlocks borrowable tUSDT (60% max LTV)
+3. **Borrow** — draw tUSDT up to available credit, live on the Credit & Borrowing page
+4. **Health factor** — monitored continuously; unhealthy positions can't withdraw collateral
+5. **Repay** — repaying debt releases the locked collateral
 
 ```text
 creditCapacity = collateralValue × 60%    (max LTV = 60%)
@@ -588,7 +605,6 @@ Asetra/
 │   ├── types/asset.ts                  # TypeScript types
 │   └── .env.local                      # Environment config
 │
-├── Asetra_PRD_v1.1.md                 # Product Requirements Document
 └── README.md
 ```
 
